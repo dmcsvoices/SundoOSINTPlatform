@@ -1,0 +1,20 @@
+[Unit]
+Description=Sundo Pi OSINT Monitoring Platform
+After=network.target
+
+[Service]
+Type=simple
+User=darren
+WorkingDirectory=/home/darren/sundo-pi
+Environment=PYTHONPATH=/home/darren/sundo-pi
+Environment=NEO4J_URI=bolt://localhost:17687
+Environment=NEO4J_USER=neo4j
+Environment=NEO4J_PASSWORD=sundo
+ExecStart=/home/darren/sundo-pi/venv/bin/python -m sundo.main
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

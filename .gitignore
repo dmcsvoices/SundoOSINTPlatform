@@ -1,0 +1,33 @@
+# === Secrets & Environment ===
+.env
+*.env.local
+*.env.production
+
+# === Python ===
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# === Generated Data / Outputs ===
+data/
+output/
+*.db
+*.sqlite
+*.sqlite3
+
+# === IDE / OS ===
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === Logs ===
+*.log

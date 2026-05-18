@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sundo Pi — Network View</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, sans-serif; background: #f5f5f0; }
+    #cy { width: 100%; height: 100%; display: block; }
+    #info {
+      position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95);
+      padding: 10px 14px; border-radius: 6px; font-size: 13px; max-width: 280px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15); border: 1px solid #ddd;
+    }
+    #info h1 { margin: 0 0 6px; font-size: 15px; color: #333; }
+    #legend { margin-top: 8px; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    #loading {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 16px; color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1>Sundo Pi Network</h1>
+    <div id="hover">Hover a node for details.</div>
+    <div id="filter-controls" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #ddd;">
+      <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px;">
+        <input type="checkbox" id="show-articles" style="margin-right: 6px;">
+        Show Articles
+      </label>
+    </div>
+    <div id="legend">
+      <div><span class="dot" style="background:#e74c3c"></span>Person (FARA-linked)</div>
+      <div><span class="dot" style="background:#e67e22"></span>Person (unlinked)</div>
+      <div><span class="dot" style="background:#3498db"></span>Organization</div>
+      <div><span class="dot" style="background:#2ecc71"></span>PalestinianVoice</div>
+      <div><span class="dot" style="background:#95a5a6"></span>Article (hidden)</div>
+    </div>
+  </div>
+  <div id="loading">Loading graph...</div>
+  <div id="cy"></div>
+
+  <script type="application/json" id="graph-data">
+    {{ graph_json | safe }}
+  </script>
+
+  <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+  <script>
+    try {
+      const graph = JSON.parse(document.getElementById('graph-data').textContent);
+
+      function nodeColor(n) {
+        const t = n.data.type || 'Unknown';
+        const fara = n.data.fara_linked;
+        if (t === 'Person' && fara) return '#e74c3c';
+        if (t === 'Person') return '#e67e22';
+        if (t === 'Organization') return '#3498db';
+        if (t === 'PalestinianVoice') return '#2ecc71';
+        return '#95a5a6';
+      }
+
+      graph.nodes.forEach(function(n) {
+        n.data.color = nodeColor(n);
+      });
+
+      document.getElementById('loading').style.display = 'none';
+
+      if (typeof cytoscape === 'undefined') {
+        throw new Error('Cytoscape library failed to load from CDN');
+      }
+
+      const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: [
+          ...graph.nodes.map(n => ({ data: n.data })),
+          ...graph.edges.map(e => ({ data: e.data }))
+        ],
+        style: [
+          { selector: 'node', style: {
+            'background-color': 'data(color)',
+            'label': 'data(label)',
+            'width': 22,
+            'height': 22,
+            'font-size': 11,
+            'text-valign': 'bottom',
+            'text-margin-y': 6,
+            'color': '#333',
+            'text-background-color': '#fff',
+            'text-background-opacity': 0.8,
+            'text-background-padding': 2,
+            'border-width': 2,
+            'border-color': '#555'
+          }},
+          { selector: 'edge', style: {
+            'width': 2,
+            'line-color': '#bdc3c7',
+            'target-arrow-color': '#bdc3c7',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            'label': 'data(relationship)',
+            'font-size': 9,
+            'color': '#7f8c8d',
+            'text-background-color': '#fff',
+            'text-background-opacity': 0.7
+          }}
+        ],
+        layout: { name: 'cose', padding: 30, animate: true, animationDuration: 500 }
+      });
+
+      cy.on('mouseover', 'node', function(evt) {
+        const n = evt.target;
+        const info = document.getElementById('hover');
+        const cs = n.data('credibility_score');
+        const csText = (cs !== null && cs !== undefined) ? '<br>Credibility: ' + Number(cs).toFixed(2) : '';
+        info.innerHTML = '<strong>' + (n.data('label') || n.id()) + '</strong><br>Type: ' + (n.data('type') || 'Unknown') + csText;
+      });
+
+      cy.on('mouseout', 'node', function() {
+        document.getElementById('hover').innerText = 'Hover a node for details.';
+      });
+
+      cy.on('layoutstop', function() {
+        cy.fit(cy.elements(), 40);
+      });
+
+      cy.nodes('[type = "Article"]').hide();
+      cy.elements('[type = "Article"]').connectedEdges().hide();
+
+      document.getElementById('show-articles').addEventListener('change', function(e) {
+        if (e.target.checked) {
+          cy.nodes('[type = "Article"]').show();
+          cy.elements('[type = "Article"]').connectedEdges().show();
+        } else {
+          cy.nodes('[type = "Article"]').hide();
+          cy.elements('[type = "Article"]').connectedEdges().hide();
+        }
+        const visible = cy.nodes(':visible');
+        if (visible.length > 0) {
+          cy.fit(visible, 40);
+        }
+      });
+
+    } catch (err) {
+      document.getElementById('loading').innerHTML = '<span style="color:#c0392b">Error: ' + err.message + '</span>';
+      console.error('Dashboard error:', err);
+    }
+  </script>
+</body>
+</html>
