@@ -18,6 +18,18 @@
     #info h1::before { content: "🌿 "; }
     #legend { margin-top: 8px; }
     .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    #layout-toggle {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    #layout-toggle label {
+      display: block;
+      margin: 2px 0;
+      cursor: pointer;
+    }
+    #layout-toggle input {
+      margin-right: 6px;
+    }
     #loading {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       font-size: 16px; color: #4a7c59; animation: pulse 1.5s ease-in-out infinite;
@@ -104,6 +116,15 @@
         <input type="checkbox" id="show-articles" style="margin-right: 6px; cursor: pointer;" checked>
         Show Articles
       </label>
+    </div>
+    <div id="layout-toggle" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9;">
+      <div style="font-weight: bold; margin-bottom: 4px; font-size: 12px;">Layout</div>
+      <label><input type="radio" name="layout" value="concentric" checked> Concentric (hub-spoke)</label>
+      <label><input type="radio" name="layout" value="cose"> Cose (organic)</label>
+      <label><input type="radio" name="layout" value="circle"> Circle</label>
+      <label><input type="radio" name="layout" value="grid"> Grid</label>
+      <label><input type="radio" name="layout" value="breadthfirst"> Tree</label>
+      <label><input type="radio" name="layout" value="random"> Random</label>
     </div>
     <div id="legend">
       <div><span class="dot" style="background:#c94c4c"></span>Person (FARA-linked)</div>
@@ -239,6 +260,36 @@
         cy.fit(cy.elements(), 40);
       });
 
+      // Layout switcher
+      function runLayout(name) {
+        const layoutOptions = {
+          name: name,
+          fit: true,
+          padding: 30,
+          animate: true,
+          animationDuration: 500,
+        };
+        if (name === 'concentric') {
+          layoutOptions.levelWidth = function() { return 1; };
+          layoutOptions.concentric = function(n) {
+            const type = n.data('type');
+            if (type === 'Source') return 10;
+            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
+            return 1;
+          };
+        }
+        cy.layout(layoutOptions).run();
+      }
+
+      document.querySelectorAll('input[name="layout"]').forEach(function(radio) {
+        radio.addEventListener('change', function(e) {
+          if (e.target.checked) {
+            console.log('Sundo: switching layout to', e.target.value);
+            runLayout(e.target.value);
+          }
+        });
+      });
+
       document.getElementById('show-articles').addEventListener('change', function(e) {
         console.log('Sundo: show-articles checkbox changed, checked=', e.target.checked);
         const show = e.target.checked;
@@ -254,24 +305,9 @@
           edges.hide();
           console.log('Sundo: hid articles');
         }
-        // Re-run concentric layout after toggle so rings recenter
-        const visible = cy.nodes(':visible');
-        if (visible.length > 0) {
-          cy.layout({
-            name: 'concentric',
-            fit: true,
-            padding: 30,
-            animate: true,
-            animationDuration: 400,
-            levelWidth: function() { return 1; },
-            concentric: function(n) {
-              const type = n.data('type');
-              if (type === 'Source') return 10;
-              if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
-              return 1;
-            }
-          }).run();
-        }
+        // Re-run selected layout after toggle so nodes recenter
+        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'concentric';
+        runLayout(selectedLayout);
       });
 
       // Sync initial checkbox state on load
