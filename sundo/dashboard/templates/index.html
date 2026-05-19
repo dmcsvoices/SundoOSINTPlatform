@@ -285,6 +285,9 @@
         } else if (type === 'PalestinianVoice') {
           title.textContent = '@' + id;
           fetchVoiceDetail(id);
+        } else if (type === 'Source') {
+          title.textContent = nodeData.label || id;
+          fetchSourceDetail(id, nodeData.feed_url || '');
         } else {
           title.textContent = nodeData.label || 'Article';
           fetchOtherDetail(id);
@@ -489,6 +492,41 @@
         const digestLabel = d.digest_include ? 'Remove from digest' : 'Add to digest';
         html += '<button class="action-btn primary" onclick="toggleDigest(\'' + d.handle + '\', this)">' + digestLabel + '</button>';
         html += '<button class="action-btn" onclick="copyAmpPack(\'' + d.handle + '\')">Copy amp pack</button>';
+        html += '</div>';
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      function fetchSourceDetail(sourceId, feedUrl) {
+        const url = '/api/node/source/' + encodeURIComponent(sourceId) + '?feed_url=' + encodeURIComponent(feedUrl);
+        fetch(url)
+          .then(r => r.json())
+          .then(d => renderSourcePanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load source data.</div>';
+          });
+      }
+
+      function renderSourcePanel(d) {
+        let html = '';
+        const typeColor = d.source_type === 'amplify' ? 'badge-green' : 'badge-gray';
+        html += '<div class="panel-section">';
+        html += '<span class="badge ' + typeColor + '">' + (d.source_type === 'amplify' ? 'Amplify' : 'Monitor') + '</span> ';
+        html += '<span class="badge badge-blue">' + d.article_count + ' articles</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Articles</div>';
+        if (d.articles && d.articles.length > 0) {
+          d.articles.forEach(function(a) {
+            html += '<div class="article-item">';
+            html += '<a href="#" onclick="event.preventDefault(); fetchOtherDetail(\'' + (a.article_id || '') + '\'); return false;" style="color:#0066cc;text-decoration:none;cursor:pointer;">' + (a.title || 'Untitled') + '</a>';
+            html += '<div class="article-meta">' + fmtDate(a.published_at);
+            if (a.authors) html += ' · ' + a.authors;
+            html += '</div></div>';
+          });
+        } else {
+          html += '<div class="loading-state">No articles found.</div>';
+        }
         html += '</div>';
         document.getElementById('panel-body').innerHTML = html;
       }

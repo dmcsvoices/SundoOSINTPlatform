@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -21,6 +22,8 @@ from sundo.config import (
     NEO4J_PASSWORD,
     SQLITE_PATH,
     OUTPUT_DIR,
+    AMPLIFY_FEEDS,
+    MONITOR_FEEDS,
 )
 from sundo.db.sqlite_store import get_connection
 
@@ -112,6 +115,16 @@ def _feed_url_to_name(feed_url: str) -> str:
         "https://www.jta.org/feed": "Jewish Telegraphic Agency",
     }
     return mapping.get(feed_url, feed_url)
+
+
+def _article_id(link: str) -> str:
+    """Generate the same article node id used in cytoscape_export."""
+    if not link:
+        return "article_unknown"
+    from urllib.parse import urlparse
+    domain = urlparse(link).netloc.replace("www.", "")
+    h = hashlib.md5(link.encode()).hexdigest()[:8]
+    return f"article_{domain}__{h}"
 
 
 # ---------------------------------------------------------------------------
@@ -488,6 +501,67 @@ def api_node_voice(handle: str):
         logger.error("Error in /api/node/voice/%s: %s", handle, exc)
         if _errors_file_handler:
             logging.getLogger().error("Error in /api/node/voice/%s: %s", handle, exc)
+        return jsonify({"error": "Database unavailable"}), 503
+
+
+@app.route("/api/node/source/<source_id>")
+def api_node_source(source_id: str):
+    """Return all articles for a Source node."""
+    logger.info("Source endpoint called: %s", source_id)
+    try:
+        feed_url = request.args.get("feed_url", "")
+        logger.info("Feed URL param: %s", feed_url)
+        if not feed_url:
+            # Try to resolve from known mappings
+            for name, url in AMPLIFY_FEEDS + MONITOR_FEEDS:
+                short = "".join(w[0] for w in name.split() if w).lower()[:8]
+                if short == source_id:
+                    feed_url = url
+                    break
+
+        if not feed_url:
+            return jsonify({"error": "Unknown source"}), 404
+
+        articles = []
+        try:
+            rows = _sqlite_run(
+                "SELECT title, link, feed_url, source_type, published_at, authors, tags "
+                "FROM rss_articles WHERE feed_url = ? OR feed_url = ? "
+                "ORDER BY published_at DESC LIMIT 50",
+                (feed_url, feed_url.rstrip("/")),
+            )
+            logger.info("SQLite rows result: %s", rows)
+        except Exception as exc:
+            logger.error("SQLite query failed in source endpoint: %s", exc)
+            return jsonify({"error": "Database query failed"}), 503
+
+        if rows is None:
+            return jsonify({"error": "Database unavailable"}), 503
+
+        for r in rows:
+            articles.append({
+                "title": r.get("title", ""),
+                "url": r.get("link", ""),
+                "source_name": _feed_url_to_name(r.get("feed_url", "")),
+                "published_at": r.get("published_at"),
+                "authors": r.get("authors"),
+                "tags": r.get("tags"),
+                "article_id": _article_id(r.get("link", "")),
+            })
+
+        response = {
+            "type": "Source",
+            "id": source_id,
+            "source_name": _feed_url_to_name(feed_url),
+            "source_type": "amplify" if any(feed_url == u for _, u in AMPLIFY_FEEDS) else "monitor",
+            "feed_url": feed_url,
+            "article_count": len(articles),
+            "articles": articles,
+        }
+        return jsonify(response), 200
+
+    except Exception as exc:
+        logger.error("Error in /api/node/source/%s: %s", source_id, exc)
         return jsonify({"error": "Database unavailable"}), 503
 
 

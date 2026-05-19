@@ -189,6 +189,7 @@ def _sqlite_articles() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list
                         "source_type": source_type,
                         "credibility_score": cred,
                         "fara_linked": False,
+                        "feed_url": feed_url,
                     }
                 }
             )

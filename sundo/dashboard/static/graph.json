@@ -29,52 +29,24 @@
     },
     {
       "data": {
+        "id": "alquds",
+        "label": "Al-Quds",
+        "type": "Source",
+        "source_type": "amplify",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "feed_url": "https://www.alquds.com/feed/"
+      }
+    },
+    {
+      "data": {
         "id": "mee",
         "label": "Middle East Eye",
         "type": "Source",
         "source_type": "amplify",
         "credibility_score": 0.8,
-        "fara_linked": false
-      }
-    },
-    {
-      "data": {
-        "id": "ei",
-        "label": "Electronic Intifada",
-        "type": "Source",
-        "source_type": "amplify",
-        "credibility_score": 0.8,
-        "fara_linked": false
-      }
-    },
-    {
-      "data": {
-        "id": "mondoweiss",
-        "label": "Mondoweiss",
-        "type": "Source",
-        "source_type": "amplify",
-        "credibility_score": 0.8,
-        "fara_linked": false
-      }
-    },
-    {
-      "data": {
-        "id": "forward",
-        "label": "The Forward",
-        "type": "Source",
-        "source_type": "monitor",
-        "credibility_score": 0.5,
-        "fara_linked": false
-      }
-    },
-    {
-      "data": {
-        "id": "972mag",
-        "label": "+972 Magazine",
-        "type": "Source",
-        "source_type": "amplify",
-        "credibility_score": 0.8,
-        "fara_linked": false
+        "fara_linked": false,
+        "feed_url": "https://www.middleeasteye.net/rss"
       }
     },
     {
@@ -84,7 +56,52 @@
         "type": "Source",
         "source_type": "monitor",
         "credibility_score": 0.5,
-        "fara_linked": false
+        "fara_linked": false,
+        "feed_url": "https://www.jta.org/feed/"
+      }
+    },
+    {
+      "data": {
+        "id": "forward",
+        "label": "The Forward",
+        "type": "Source",
+        "source_type": "monitor",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "feed_url": "https://forward.com/feed/"
+      }
+    },
+    {
+      "data": {
+        "id": "ei",
+        "label": "Electronic Intifada",
+        "type": "Source",
+        "source_type": "amplify",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "feed_url": "https://electronicintifada.net/rss.xml"
+      }
+    },
+    {
+      "data": {
+        "id": "mondoweiss",
+        "label": "Mondoweiss",
+        "type": "Source",
+        "source_type": "amplify",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "feed_url": "https://mondoweiss.net/feed/"
+      }
+    },
+    {
+      "data": {
+        "id": "972mag",
+        "label": "+972 Magazine",
+        "type": "Source",
+        "source_type": "amplify",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "feed_url": "https://www.972mag.com/feed/"
       }
     },
     {
@@ -94,17 +111,463 @@
         "type": "Source",
         "source_type": "monitor",
         "credibility_score": 0.5,
-        "fara_linked": false
+        "fara_linked": false,
+        "feed_url": "https://theintercept.com/feed/"
       }
     },
     {
       "data": {
-        "id": "alquds",
-        "label": "Al-Quds",
-        "type": "Source",
-        "source_type": "amplify",
+        "id": "article_alquds_com__fcb93535",
+        "label": "\u062c\u0631\u064a\u0645\u0629 \u0643\u0631\u0627\u0647\u064a\u0629 \u062a\u0647\u0632 \u0643\u0627\u0644\u064a\u0641\u0648\u0631\u0646\u064a\u0627: \u0645\u0642\u062a\u0644 3 \u0623\u0634\u062e\u0627\u0635 \u0641\u064a \u0647\u062c\u0648\u0645 \u0645\u0633\u0644\u062d \u0627\u0633\u062a\u0647\u062f\u0641 \u0623\u0643\u0628\u0631 \u0645\u0633\u0627\u062c\u062f \u0633\u0627\u0646 \u062f\u064a\u064a...",
+        "type": "Article",
         "credibility_score": 0.8,
-        "fara_linked": false
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240534",
+        "published_at": "2026-05-19T20:22:09",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__4471d78f",
+        "label": "\u0627\u0644\u0638\u0627\u0647\u0631\u0629 \u0627\u0644\u0642\u0631\u0622\u0646\u064a\u0629 \u0648\u0645\u0633\u0627\u0631\u0627\u062a \u0627\u0644\u0646\u0647\u0648\u0636: \u0642\u0631\u0627\u0621\u0629 \u0641\u064a \u0647\u0646\u062f\u0633\u0629 \u0645\u0627\u0644\u0643 \u0628\u0646 \u0646\u0628\u064a \u0627\u0644\u062d\u0636\u0627\u0631\u064a\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240533",
+        "published_at": "2026-05-19T20:22:06",
+        "authors": null,
+        "tags": "\u062a\u062d\u0644\u064a\u0644"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__549c79f5",
+        "label": "\u0635\u062d\u0629 \u063a\u0632\u0629 \u062a\u0637\u0644\u0642 \u0646\u062f\u0627\u0621 \u0627\u0633\u062a\u063a\u0627\u062b\u0629 \u0644\u062a\u0633\u0631\u064a\u0639 \u0625\u062c\u0644\u0627\u0621 \u0622\u0644\u0627\u0641 \u0627\u0644\u062c\u0631\u062d\u0649 \u0648\u0627\u0644\u0645\u0631\u0636\u0649 \u0639\u0628\u0631 \u0645\u0639\u0628\u0631 \u0631\u0641\u062d",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240532",
+        "published_at": "2026-05-19T20:22:01",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__ca9b0f1d",
+        "label": "Rubio discusses Strait of Hormuz with UN chief",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/rubio-discusses-strait-hormuz-un-chief",
+        "published_at": "2026-05-19T20:15:24",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_jta_org__c407f10d",
+        "label": "Jewish man says he was attacked after speaking Hebrew in London\u2019s Golders Green",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://www.jta.org/2026/05/19/global/jewish-man-says-he-was-attacked-after-speaking-hebrew-in-londons-golders-green",
+        "published_at": "2026-05-19T20:13:56",
+        "authors": "Grace Gilson",
+        "tags": "Global"
+      }
+    },
+    {
+      "data": {
+        "id": "article_jta_org__8095eb79",
+        "label": "Two polls find growing split among Republicans over support for Israel",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://www.jta.org/2026/05/19/united-states/two-polls-find-growing-split-among-republicans-over-support-for-israel",
+        "published_at": "2026-05-19T20:10:34",
+        "authors": "Grace Gilson",
+        "tags": "United States"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__14843c54",
+        "label": "\u062a\u062d\u0648\u0644 \u0627\u0633\u062a\u0631\u0627\u062a\u064a\u062c\u064a \u0641\u064a \u0645\u0627\u0644\u064a: \u0627\u0633\u062a\u0647\u062f\u0627\u0641 \u0627\u0644\u0627\u0633\u062a\u062b\u0645\u0627\u0631\u0627\u062a \u0627\u0644\u0635\u064a\u0646\u064a\u0629 \u064a\u0636\u0639 \u0628\u0627\u0645\u0627\u0643\u0648 \u0641\u064a \u0645\u0623\u0632\u0642 \u0627\u0642\u062a\u0635\u0627\u062f\u064a",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240531",
+        "published_at": "2026-05-19T19:52:12",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__7c5e122b",
+        "label": "Thousands of Palestinian patients remain stranded in Gaza awaiting treatment abr...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/thousands-palestinian-patients-remain-stranded-gaza-awaiting-treatment",
+        "published_at": "2026-05-19T19:50:13",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_forward_com__77870c3a",
+        "label": "The San Diego imam defended Oct. 7. His mosque still deserves our help",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://forward.com/opinion/826216/the-san-diego-mosque-oct-7-imam/",
+        "published_at": "2026-05-19T19:49:39",
+        "authors": "Rob Eshman",
+        "tags": "Opinion, Hate Crimes, Islamophobia, Mosque, San Diego"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__518b070f",
+        "label": "Somaliland recognises Jerusalem as capital of Israel and will open an embassy",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/news/somaliland-recognises-jerusalem-capital-israel",
+        "published_at": "2026-05-19T19:31:45",
+        "authors": "Sean Mathews",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__c885f18b",
+        "label": "\u0633\u0645\u0648\u062a\u0631\u064a\u062a\u0634 \u064a\u0623\u0645\u0631 \u0628\u0625\u062e\u0644\u0627\u0621 \u0627\u0644\u062e\u0627\u0646 \u0627\u0644\u0623\u062d\u0645\u0631 \u0631\u062f\u0627\u064b \u0639\u0644\u0649 \u0645\u0644\u0627\u062d\u0642\u0629 \u0627\u0644\u062c\u0646\u0627\u0626\u064a\u0629 \u0627\u0644\u062f\u0648\u0644\u064a\u0629 \u0644\u0647",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240529",
+        "published_at": "2026-05-19T19:22:11",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__0d58063b",
+        "label": "\u062a\u0642\u0631\u064a\u0631 \u062f\u0648\u0644\u064a: \u0627\u0644\u0627\u062d\u062a\u0644\u0627\u0644 \u064a\u0642\u0636\u0645 \u0623\u0644\u0641 \u0643\u064a\u0644\u0648\u0645\u062a\u0631 \u0645\u0631\u0628\u0639 \u0645\u0646 \u0623\u0631\u0627\u0636\u064a \u063a\u0632\u0629 \u0648\u0644\u0628\u0646\u0627\u0646 \u0648\u0633\u0648\u0631\u064a\u0627",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240528",
+        "published_at": "2026-05-19T19:22:04",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__2768f984",
+        "label": "\u062a\u0635\u0639\u064a\u062f \u0645\u064a\u062f\u0627\u0646\u064a \u062c\u0646\u0648\u0628 \u0644\u0628\u0646\u0627\u0646: \u0645\u0642\u062a\u0644 \u0636\u0627\u0628\u0637 \u0625\u0633\u0631\u0627\u0626\u064a\u0644\u064a \u0648\u062a\u0639\u0644\u064a\u0642 \u0639\u0645\u0644\u064a\u0627\u062a \u0627\u0644\u0625\u0633\u0639\u0627\u0641 \u0641\u064a \u0627\u0644\u0646\u0628\u0637\u064a\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240526",
+        "published_at": "2026-05-19T19:22:03",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__18b5f351",
+        "label": "\u0627\u0644\u0646\u0633\u0627\u0621 \u0627\u0644\u0633\u0648\u0631\u064a\u0627\u062a \u0641\u064a \u0645\u0647\u0628 \u0627\u0644\u0627\u0633\u062a\u062b\u0645\u0627\u0631 \u0627\u0644\u0633\u064a\u0627\u0633\u064a: \u0635\u0631\u0627\u0639 \u0627\u0644\u0633\u0631\u062f\u064a\u0627\u062a \u0648\u062a\u0648\u0638\u064a\u0641 \u0627\u0644\u0623\u0644\u0645",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240527",
+        "published_at": "2026-05-19T19:22:03",
+        "authors": null,
+        "tags": "\u0623\u0642\u0644\u0627\u0645 \u0648\u0623\u0631\u0627\u0621"
+      }
+    },
+    {
+      "data": {
+        "id": "article_electronicintifada_net__a9737a8e",
+        "label": "I graduated, what now?",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://electronicintifada.net/content/i-graduated-what-now/51414",
+        "published_at": "2026-05-19T19:09:59",
+        "authors": "Ahmad Sbaih",
+        "tags": "university graduates, Islamic University of Gaza, Gaza genocide, eiGazaDispatches"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__fa3765e2",
+        "label": "Oil prices fall after Trump pauses planned Iran attack",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/oil-prices-fall-after-trump-pauses-planned-iran-attack",
+        "published_at": "2026-05-19T19:09:55",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_forward_com__1cd995c5",
+        "label": "An op-ed compared an NBA team to Israel as underdog success stories. Then the th...",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://forward.com/news/sports/826246/okc-thunder-israel-article-deleted-backlash/",
+        "published_at": "2026-05-19T19:08:27",
+        "authors": "Louis Keene",
+        "tags": "News, Sports, Basketball, NBA, Oklahoma"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__ae16ecb3",
+        "label": "\u0628\u0648\u062a\u064a\u0646 \u0641\u064a \u0628\u0643\u064a\u0646: \u0642\u0645\u0629 \u0627\u0633\u062a\u0631\u0627\u062a\u064a\u062c\u064a\u0629 \u0645\u0639 \u0634\u064a \u062c\u064a\u0646\u0628\u064a\u0646\u063a \u0644\u062a\u0639\u0632\u064a\u0632 \u0627\u0644\u0634\u0631\u0627\u0643\u0629 \u0627\u0644\u0627\u0642\u062a\u0635\u0627\u062f\u064a\u0629 \u0648\u0627\u0644\u0637\u0627\u0642\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240521",
+        "published_at": "2026-05-19T18:51:58",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__b7b0f310",
+        "label": "Rubio to attend Nato meeting amid concerns over US troop plans in Europe",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/rubio-attend-nato-meeting-amid-concerns-over-us-troop-plans-europe",
+        "published_at": "2026-05-19T18:47:25",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__bcf27e15",
+        "label": "\u0645\u0635\u0631 \u0648\u0645\u0623\u0632\u0642 \u0627\u0644\u062a\u0646\u0645\u064a\u0629: \u0642\u0631\u0627\u0621\u0629 \u0641\u064a \u062a\u0635\u0631\u064a\u062d\u0627\u062a \u0627\u0644\u0627\u0643\u062a\u0641\u0627\u0621 \u0627\u0644\u0630\u0627\u062a\u064a \u0648\u0623\u0632\u0645\u0629 \u0627\u0644\u062f\u064a\u0648\u0646",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240518",
+        "published_at": "2026-05-19T18:37:10",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__cc23bb2c",
+        "label": "EU pledges support for farmers hit by fertiliser price surge",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/eu-pledges-support-farmers-hit-fertiliser-price-surge",
+        "published_at": "2026-05-19T18:29:06",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__d39cacfc",
+        "label": "\u0633\u0645\u0648\u062a\u0631\u064a\u062a\u0634 \u064a\u0648\u0642\u0639 \u0623\u0645\u0631\u0627\u064b \u0628\u0627\u0644\u0625\u062e\u0644\u0627\u0621 \u0627\u0644\u0641\u0648\u0631\u064a \u0644\u062a\u062c\u0645\u0639 \u0627\u0644\u062e\u0627\u0646 \u0627\u0644\u0623\u062d\u0645\u0631 \u0634\u0631\u0642\u064a \u0627\u0644\u0642\u062f\u0633",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240517",
+        "published_at": "2026-05-19T18:21:59",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__44e0209c",
+        "label": "Four bodies recovered after Israeli strike in southern Lebanon",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/four-bodies-recovered-after-israeli-strike-southern-lebanon",
+        "published_at": "2026-05-19T18:10:30",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__ec760d01",
+        "label": "\u0643\u0648\u0647\u064a\u0646 \u064a\u0643\u0634\u0641 \u0639\u0646 \u062e\u0637\u0629 \u0644\u0646\u0642\u0644 \u0646\u0641\u0637 \u0627\u0644\u062e\u0644\u064a\u062c \u0639\u0628\u0631 \u0625\u0633\u0631\u0627\u0626\u064a\u0644 \u0648\u064a\u0647\u062f\u062f \u0628\u0636\u0631\u0628\u0629 \u0639\u0633\u0643\u0631\u064a\u0629 \u0644\u0625\u064a\u0631\u0627\u0646",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240514",
+        "published_at": "2026-05-19T18:08:35",
+        "authors": null,
+        "tags": "\u0627\u0633\u0631\u0627\u0626\u064a\u0644\u064a\u0627\u062a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__0ee396aa",
+        "label": "\u062a\u062d\u0644\u064a\u0644 \u0625\u0633\u0631\u0627\u0626\u064a\u0644\u064a: \u0627\u063a\u062a\u064a\u0627\u0644 '\u0627\u0644\u062d\u062f\u0627\u062f' \u0625\u0646\u062c\u0627\u0632 \u062a\u0643\u062a\u064a\u0643\u064a \u064a\u0635\u0637\u062f\u0645 \u0628\u063a\u064a\u0627\u0628 \u0627\u0644\u0631\u0624\u064a\u0629 \u0627\u0644\u0633\u064a\u0627\u0633\u064a\u0629 \u0641\u064a \u063a\u0632\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240513",
+        "published_at": "2026-05-19T18:08:08",
+        "authors": null,
+        "tags": "\u0627\u0633\u0631\u0627\u0626\u064a\u0644\u064a\u0627\u062a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_jta_org__daceb809",
+        "label": "Pop star Harry Styles to \u2018Viva Palestina\u2019 concertgoer in Amsterdam: \u2018Correct\u2019",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://www.jta.org/2026/05/19/culture/pop-star-harry-styles-to-viva-palestina-concertgoer-in-amsterdam-correct",
+        "published_at": "2026-05-19T18:02:16",
+        "authors": "Jackie Hajdenberg",
+        "tags": "Culture"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__2db52378",
+        "label": "Iran has mapped out US flight patterns for air defence: Report",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/news/iran-has-mapped-out-us-flight-patterns-their-air-defence-report",
+        "published_at": "2026-05-19T17:49:12",
+        "authors": "MEE staff",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__f8e89550",
+        "label": "IAEA chief to brief UN Security Council on UAE nuclear plant attack",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/iaea-chief-brief-un-security-council-uae-nuclear-plant-attack",
+        "published_at": "2026-05-19T17:48:19",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__eda74c07",
+        "label": "\u0645\u0623\u0633\u0627\u0629 \u0627\u0644\u0645\u0641\u0642\u0648\u062f\u064a\u0646 \u0641\u064a \u063a\u0632\u0629: \u0623\u0643\u062b\u0631 \u0645\u0646 11 \u0623\u0644\u0641 \u063a\u0627\u0626\u0628 \u062a\u062d\u062a \u0627\u0644\u0623\u0646\u0642\u0627\u0636 \u0648\u0641\u064a \u0645\u0631\u0627\u0643\u0632 \u0627\u0644\u0627\u062d\u062a\u062c\u0627\u0632",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240510",
+        "published_at": "2026-05-19T17:38:11",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_jta_org__b3191fdf",
+        "label": "Israeli ambassador calls J Street a \u2018cancer within Jewish community\u2019",
+        "type": "Article",
+        "credibility_score": 0.5,
+        "fara_linked": false,
+        "article_link": "https://www.jta.org/2026/05/19/united-states/israeli-ambassador-calls-j-street-a-cancer-within-jewish-community",
+        "published_at": "2026-05-19T17:31:47",
+        "authors": "Grace Gilson",
+        "tags": "United States"
+      }
+    },
+    {
+      "data": {
+        "id": "article_middleeasteye_net__85753e67",
+        "label": "US sanctions activists aboard Gaza-bound aid flotilla",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.middleeasteye.net/live-blog/live-blog-update/us-sanctions-activists-aboard-gaza-bound-aid-flotilla",
+        "published_at": "2026-05-19T17:26:11",
+        "authors": "Tamara Turki",
+        "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__b168738a",
+        "label": "\u0648\u0627\u0634\u0646\u0637\u0646 \u062a\u0637\u0644\u0628 \u062a\u0645\u062f\u064a\u062f \u0628\u0642\u0627\u0621 \u0645\u0642\u0627\u062a\u0644\u0627\u062a\u0647\u0627 \u0641\u064a \u0645\u0637\u0627\u0631 \u0628\u0646 \u063a\u0648\u0631\u064a\u0648\u0646 \u0648\u0633\u0637 \u062a\u062d\u0630\u064a\u0631\u0627\u062a \u0645\u0646 \u0623\u0632\u0645\u0629 \u0637\u064a\u0631\u0627\u0646 \u0645\u062f\u0646...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240509",
+        "published_at": "2026-05-19T17:07:09",
+        "authors": null,
+        "tags": "\u0627\u0633\u0631\u0627\u0626\u064a\u0644\u064a\u0627\u062a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__1eba51b4",
+        "label": "\u0623\u0632\u0645\u0629 \u062f\u0628\u0644\u0648\u0645\u0627\u0633\u064a\u0629 \u0628\u064a\u0646 \u062a\u0644 \u0623\u0628\u064a\u0628 \u0648\u0623\u0628\u0648\u0638\u0628\u064a \u0639\u0642\u0628 \u062a\u0633\u0631\u064a\u0628 \u0632\u064a\u0627\u0631\u0629 \u0646\u062a\u0646\u064a\u0627\u0647\u0648 \u0627\u0644\u0633\u0631\u064a\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240508",
+        "published_at": "2026-05-19T17:07:06",
+        "authors": null,
+        "tags": "\u0627\u0633\u0631\u0627\u0626\u064a\u0644\u064a\u0627\u062a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__0c2f0057",
+        "label": "\u0634\u0647\u064a\u062f \u0641\u064a \u063a\u0627\u0631\u0629 \u0639\u0644\u0649 \u062d\u064a \u0627\u0644\u0631\u0645\u0627\u0644 \u0648\u0627\u0644\u0627\u062d\u062a\u0644\u0627\u0644 \u064a\u0642\u0644\u0635 \u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u062c\u063a\u0631\u0627\u0641\u064a\u0629 \u0644\u0644\u0645\u062f\u064a\u0646\u0629 \u0639\u0628\u0631 \u062b\u0643\u0646\u0627\u062a \u0639\u0633...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240507",
+        "published_at": "2026-05-19T17:07:00",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__9d6bd362",
+        "label": "\u0639\u0634\u0631\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u0648\u0637\u0646\u064a\u0646 \u064a\u0642\u062a\u062d\u0645\u0648\u0646 \u0627\u0644\u0623\u0642\u0635\u0649 \u0648\u0627\u0644\u0627\u062d\u062a\u0644\u0627\u0644 \u064a\u0628\u0639\u062f \u0645\u0631\u0627\u0628\u0637\u0629 \u0645\u0642\u062f\u0633\u064a\u0651\u0629 \u0639\u0646 \u0627\u0644\u0645\u0633\u062c\u062f",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240506",
+        "published_at": "2026-05-19T17:06:59",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
       }
     },
     {
@@ -118,6 +581,32 @@
         "published_at": "2026-05-19T17:05:46",
         "authors": "Tamara Turki",
         "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__a6e32128",
+        "label": "\u0628\u062f\u0639\u0645 \u0645\u0646 \u0648\u0643\u0627\u0644\u0629 \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a \u0644\u0644\u0645\u0633\u0627\u0639\u062f\u0627\u062a \u0627\u0644\u062f\u0648\u0644\u064a\u0629 .. \u0627\u0644\u0645\u0633\u062a\u0634\u0641\u0649 \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a\u064a \u0627\u0644\u0639\u0627\u0626\u0645 \u064a\u062c\u0633\u062f \u0646\u0647\u062c \u0627...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240503",
+        "published_at": "2026-05-19T16:59:39",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__704b8fb1",
+        "label": "\u0648\u0627\u0634\u0646\u0637\u0646 \u062a\u0641\u0631\u0636 \u0639\u0642\u0648\u0628\u0627\u062a \u0639\u0644\u0649 \u0645\u0646\u0638\u0645\u064a \"\u0623\u0633\u0637\u0648\u0644 \u0627\u0644\u0635\u0645\u0648\u062f \u0627\u0644\u0639\u0627\u0644\u0645\u064a\" \u0643\u0634\u0628\u0643\u0627\u062a \u062f\u0627\u0639\u0645\u0629 \u0644\u062d\u0645\u0627\u0633",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240501",
+        "published_at": "2026-05-19T16:54:51",
+        "authors": null,
+        "tags": "\u062a\u062d\u0644\u064a\u0644"
       }
     },
     {
@@ -148,6 +637,19 @@
     },
     {
       "data": {
+        "id": "article_alquds_com__769c18d4",
+        "label": "\u0627\u0644\u0642\u0636\u0627\u0621 \u0627\u0644\u062a\u0631\u0643\u064a \u064a\u0648\u0642\u0641 \u0625\u0639\u0627\u062f\u0629 \u0636\u0627\u0628\u0637 \u0645\u0641\u0635\u0648\u0644 \u0641\u064a \u0642\u0636\u064a\u0629 '\u0642\u0633\u0645 \u0627\u0644\u0633\u064a\u0648\u0641'",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240498",
+        "published_at": "2026-05-19T16:07:10",
+        "authors": null,
+        "tags": "\u0623\u062d\u062f\u062b \u0627\u0644\u0623\u062e\u0628\u0627\u0631"
+      }
+    },
+    {
+      "data": {
         "id": "article_middleeasteye_net__327e52bd",
         "label": "Trump says US could strike Iran again within days without deal",
         "type": "Article",
@@ -174,6 +676,19 @@
     },
     {
       "data": {
+        "id": "article_alquds_com__ce150e21",
+        "label": "\u0628\u0631\u0639\u0627\u064a\u0629 \u062c\u064a\u0631\u0645\u064a \u0643\u0648\u0631\u0628\u0646.. \u0627\u0644\u0645\u0646\u062a\u062f\u0649 \u0627\u0644\u0641\u0644\u0633\u0637\u064a\u0646\u064a \u0641\u064a \u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0627 \u064a\u0643\u0631\u0645 \u0634\u0647\u0648\u062f \u0627\u0644\u0646\u0643\u0628\u0629 \u0648\u0627\u0644\u0646\u0627\u062c\u064a\u0646 \u0645\u0646 ...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240496",
+        "published_at": "2026-05-19T15:53:10",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
         "id": "article_middleeasteye_net__8b190b91",
         "label": "Israel orders evacuations in 12 towns in south Lebanon",
         "type": "Article",
@@ -183,6 +698,32 @@
         "published_at": "2026-05-19T15:40:17",
         "authors": "Tamara Turki",
         "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__d0b56549",
+        "label": "\u062a\u0631\u0645\u0628 \u064a\u0647\u062f\u062f \u0625\u064a\u0631\u0627\u0646 \u0628\u0636\u0631\u0628\u0629 \u0648\u0627\u0633\u0639\u0629 \u0648\u0637\u0647\u0631\u0627\u0646 \u062a\u0644\u0648\u062d \u0628\u0641\u062a\u062d \u062c\u0628\u0647\u0627\u062a \u062c\u062f\u064a\u062f\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240494",
+        "published_at": "2026-05-19T15:38:18",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__3a1db199",
+        "label": "\u062a\u0642\u0631\u064a\u0631 \u062f\u0648\u0644\u064a \u0644\u0645\u062c\u0644\u0633 \u0627\u0644\u0623\u0645\u0646: \u062f\u0645\u0627\u0631 85% \u0645\u0646 \u0628\u0646\u064a\u0629 \u063a\u0632\u0629 \u0627\u0644\u062a\u062d\u062a\u064a\u0629 \u064870 \u0645\u0644\u064a\u0648\u0646 \u0637\u0646 \u0645\u0646 \u0627\u0644\u0631\u0643\u0627\u0645 \u064a\u063a\u0637\u0648...",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240493",
+        "published_at": "2026-05-19T15:38:15",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
       }
     },
     {
@@ -222,6 +763,84 @@
         "published_at": "2026-05-19T15:17:24",
         "authors": "Imene Guiza",
         "tags": null
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__37ff9a05",
+        "label": "\u0646\u0627\u0634\u0637\u0648 '\u0623\u0633\u0637\u0648\u0644 \u0627\u0644\u0635\u0645\u0648\u062f' \u064a\u062a\u062d\u062f\u0648\u0646 \u0627\u0644\u0627\u0639\u062a\u062f\u0627\u0621\u0627\u062a \u0627\u0644\u0625\u0633\u0631\u0627\u0626\u064a\u0644\u064a\u0629 \u0648\u064a\u0648\u0627\u0635\u0644\u0648\u0646 \u0627\u0644\u0625\u0628\u062d\u0627\u0631 \u0646\u062d\u0648 \u063a\u0632\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240491",
+        "published_at": "2026-05-19T15:10:12",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__7c82de69",
+        "label": "\u0628\u0648\u0631\u0635\u0629 \u0637\u0647\u0631\u0627\u0646 \u062a\u0633\u062a\u0623\u0646\u0641 \u0646\u0634\u0627\u0637\u0647\u0627 \u0628\u0639\u062f \u0625\u063a\u0644\u0627\u0642 \u062a\u0627\u0631\u064a\u062e\u064a \u062f\u0627\u0645 80 \u064a\u0648\u0645\u0627\u064b \u062c\u0631\u0627\u0621 \u0627\u0644\u062d\u0631\u0628",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240490",
+        "published_at": "2026-05-19T15:09:21",
+        "authors": null,
+        "tags": "\u0627\u0642\u062a\u0635\u0627\u062f"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__03c89bf3",
+        "label": "\u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629 \u062a\u0637\u0644\u0642 \u062e\u062f\u0645\u0629 '\u0627\u0644\u0628\u062d\u0631 \u0627\u0644\u0623\u062d\u0645\u0631 \u0627\u0644\u0633\u0631\u064a\u0639' \u0644\u062a\u0639\u0632\u064a\u0632 \u0633\u0644\u0627\u0633\u0644 \u0627\u0644\u0625\u0645\u062f\u0627\u062f \u0648\u062a\u062c\u0627\u0648\u0632 \u062a\u0648\u062a\u0631\u0627\u062a \u0647\u0631\u0645\u0632",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240489",
+        "published_at": "2026-05-19T15:08:35",
+        "authors": null,
+        "tags": "\u0627\u0642\u062a\u0635\u0627\u062f"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__37688184",
+        "label": "\u062a\u062d\u0630\u064a\u0631\u0627\u062a \u0645\u0646 \u0627\u062a\u0633\u0627\u0639 \u0631\u0642\u0639\u0629 \u0627\u0644\u0635\u0631\u0627\u0639 \u0628\u0627\u0644\u0648\u0643\u0627\u0644\u0629 \u0641\u064a \u0627\u0644\u0628\u062d\u0631 \u0627\u0644\u0623\u062d\u0645\u0631 \u0648\u0627\u0644\u0642\u0631\u0646 \u0627\u0644\u0623\u0641\u0631\u064a\u0642\u064a",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240488",
+        "published_at": "2026-05-19T15:08:08",
+        "authors": null,
+        "tags": "\u0639\u0631\u0628\u064a \u0648\u062f\u0648\u0644\u064a"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__2a1a714e",
+        "label": "\u0645\u062c\u0632\u0631\u0629 \u0627\u0644\u062e\u064a\u0627\u0645 1978.. \u0630\u0627\u0643\u0631\u0629 \u0627\u0644\u062f\u0645 \u0627\u0644\u062a\u064a \u064a\u062c\u062f\u062f\u0647\u0627 \u0627\u0644\u0627\u062d\u062a\u0644\u0627\u0644 \u0641\u064a \u062c\u0646\u0648\u0628 \u0644\u0628\u0646\u0627\u0646",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240487",
+        "published_at": "2026-05-19T15:07:06",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
+      }
+    },
+    {
+      "data": {
+        "id": "article_alquds_com__21a1a6e8",
+        "label": "\u0635\u0648\u0631\u0629 \u0637\u0641\u0644 \u063a\u0632\u0629 \u0628\u0636\u0645\u0627\u062f\u0629 \u0627\u0644\u0639\u064a\u0646: \u0631\u0645\u0632 \u062c\u062f\u064a\u062f \u0644\u0645\u0623\u0633\u0627\u0629 \u0627\u0644\u062c\u0648\u0639 \u0648\u062a\u0631\u0627\u062c\u0639 \u0627\u0644\u0645\u0633\u0627\u0639\u062f\u0627\u062a \u0627\u0644\u062f\u0648\u0644\u064a\u0629",
+        "type": "Article",
+        "credibility_score": 0.8,
+        "fara_linked": false,
+        "article_link": "https://www.alquds.com/ar/posts/240486",
+        "published_at": "2026-05-19T15:06:59",
+        "authors": null,
+        "tags": "\u0641\u0644\u0633\u0637\u064a\u0646"
       }
     },
     {
@@ -2095,624 +2714,272 @@
         "authors": "Joseph Strauss",
         "tags": "Politics"
       }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__71e7a412",
-        "label": "Judge bars Kars4Kids from advertising in California, saying it misled donors abo...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/united-states/california-judge-says-kars4kids-misled-donors-by-omitting-orthodox-jewish-mission-from-ads",
-        "published_at": "2026-05-14T22:50:57",
-        "authors": "Grace Gilson",
-        "tags": "United States"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__bc70f012",
-        "label": "\u2018Death to Arabs\u2019 chanted at Jerusalem march after Ben-Gvir displays Israeli flag...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/israel/death-to-arabs-chanted-at-jerusalem-march-after-ben-gvir-displays-israeli-flag-on-temple-mount",
-        "published_at": "2026-05-14T22:37:48",
-        "authors": "Theia Chatelle",
-        "tags": "Israel"
-      }
-    },
-    {
-      "data": {
-        "id": "article_forward_com__ab56a5a3",
-        "label": "I run The Jewish Theological Seminary. Here\u2019s the real story about President Isa...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://forward.com/opinion/825265/isaac-herzog-jewish-theological-seminary/",
-        "published_at": "2026-05-14T21:26:48",
-        "authors": "Shuly Rubin Schwartz",
-        "tags": "Opinion, Campus, Isaac Herzog, JTS"
-      }
-    },
-    {
-      "data": {
-        "id": "article_forward_com__2bdefbea",
-        "label": "Outrage over Nicholas Kristof\u2019s op-ed on sexual assault of Palestinians is missi...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://forward.com/opinion/825238/nyt-nicholas-kristoff-palestinians-blood-libel/",
-        "published_at": "2026-05-14T20:08:50",
-        "authors": "Emily Tamkin",
-        "tags": "Opinion, Israel, Israel-Hamas War, Nicholas Kristof, Sexual Violence"
-      }
-    },
-    {
-      "data": {
-        "id": "article_forward_com__764ed62f",
-        "label": "Why do some people think Rep. Mike Lawler is Jewish?",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://forward.com/news/825220/mike-lawler-congress-jewish-antisemitism/",
-        "published_at": "2026-05-14T19:49:58",
-        "authors": "Jacob Kornbluh",
-        "tags": "News, 2026 Elections, Antisemitism, Congress, New York Elections, Politics"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__ede49cee",
-        "label": "They posted about Jewish American Heritage Month. Then the antisemitic comments ...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/united-states/they-posted-about-jewish-american-heritage-month-then-the-antisemitic-comments-poured-in",
-        "published_at": "2026-05-14T18:41:12",
-        "authors": "Grace Gilson",
-        "tags": "United States"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__cef416e3",
-        "label": "Neo-Nazi known as \u2018Commander Butcher\u2019 gets 15 years over plots targeting Jews in...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/ny/neo-nazi-known-as-commander-butcher-gets-15-years-over-plots-targeting-jews-in-nyc",
-        "published_at": "2026-05-14T18:13:33",
-        "authors": "Grace Gilson",
-        "tags": "New York"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__f612d753",
-        "label": "DOJ Escalates War on Trans Youth Healthcare With Criminal Subpoenas",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/14/nyu-langone-subpoena-transgender-health-care/",
-        "published_at": "2026-05-14T17:30:00",
-        "authors": "Natasha Lennard",
-        "tags": "Justice, Voices"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__234c5a18",
-        "label": "Gap year in Israel programs credit rebound to teens seeking Jewish connections",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/israel/gap-year-in-israel-programs-credit-rebound-to-teens-seeking-jewish-connections",
-        "published_at": "2026-05-14T17:00:34",
-        "authors": "Dalia Arch-Andorsky",
-        "tags": "Culture, Israel, jewish teens, Schools, study abroad"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__b1a1dea1",
-        "label": "Flag with Star of David and two swastikas raised at NYU ahead of commencement",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/ny/flag-with-star-of-david-and-two-swastikas-raised-at-nyu-ahead-of-commencement",
-        "published_at": "2026-05-14T16:39:08",
-        "authors": "New York Jewish Week Staff",
-        "tags": "New York"
-      }
-    },
-    {
-      "data": {
-        "id": "article_jta_org__a6569ed0",
-        "label": "Noam Bettan says he is tuning out anti-Israel boos as he heads into Eurovision f...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://www.jta.org/2026/05/14/israel/noam-bettan-says-he-is-tuning-out-stop-the-genocide-chants-as-he-heads-into-eurovision-final",
-        "published_at": "2026-05-14T16:24:03",
-        "authors": "Deborah Danan",
-        "tags": "Culture, Israel"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__4fdbc80e",
-        "label": "\u201cIt\u2019s Overwhelming but It\u2019s Amazing\u201d: Richard Glossip Released From Jail After T...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/14/richard-glossip-bond-release-oklahoma-judge-natalie-mai/",
-        "published_at": "2026-05-14T16:22:46",
-        "authors": "Liliana Segura, Jordan Smith",
-        "tags": "Justice, richard glossip"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__365949b1",
-        "label": "\u2018As doctors, we are effectively blinded\u2019: Inside Gaza\u2019s MRI crisis",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/doctors-blinded-gaza-mri-crisis/",
-        "published_at": "2026-05-14T14:40:49",
-        "authors": "Jinin Rummaneh",
-        "tags": "Gaza, medical permits, health care, October 7 war"
-      }
-    },
-    {
-      "data": {
-        "id": "article_mondoweiss_net__894830ee",
-        "label": "Inside the historic crossroads facing the Fatah movement",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://mondoweiss.net/2026/05/inside-the-historic-crossroads-facing-the-fatah-movement/",
-        "published_at": "2026-05-14T14:27:26",
-        "authors": "Aseel Mafarjeh",
-        "tags": "News, Fatah, Jibril Rajoub, Mahmoud Abbas, Marwan Barghouti, Mohammed Dahlan, Nasser al-Qudweh, Palestinian politics, wire"
-      }
-    },
-    {
-      "data": {
-        "id": "article_mondoweiss_net__386dc23b",
-        "label": "Synagogues that sell stolen Palestinian land should, of course, be protested",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://mondoweiss.net/2026/05/synagogues-that-sell-stolen-palestinian-land-should-of-course-be-protested/",
-        "published_at": "2026-05-14T11:00:00",
-        "authors": "Maura Finkelstein",
-        "tags": "Opinion, American Jewish community, Top Headlines, wire, Zionism"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__5a619afd",
-        "label": "PODCAST: Remembering the Nakba of urban Palestine",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/podcast-remembering-nakba-urban-palestine/",
-        "published_at": "2026-05-14T10:39:21",
-        "authors": "+972 Magazine",
-        "tags": "The +972 Podcast, Nakba, Jaffa, Gaza"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__bbd00413",
-        "label": "This California Congressional Hopeful Opposes a Billionaire Tax. So Do His Tech ...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/14/scott-wiener-billionaire-tax-california-house-race/",
-        "published_at": "2026-05-14T10:07:00",
-        "authors": "Jonah Valdez",
-        "tags": "Politics"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__ac4d7140",
-        "label": "Miami Beach Official Hired Billboard Truck to Call Pro-Palestine Activists \u201cJew ...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/13/miami-beach-billboard-truck-david-suarez-israel-gaza/",
-        "published_at": "2026-05-13T16:40:27",
-        "authors": "Noah Hurowitz",
-        "tags": "Politics"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__2538f25a",
-        "label": "Sanctioning \"violent settlers,\" EU gives $3 million to firm hiring Israel's spie...",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/david-cronin/sanctioning-violent-settlers-eu-gives-3-million-firm-hiring-israels-spies",
-        "published_at": "2026-05-13T06:46:54",
-        "authors": "David Cronin",
-        "tags": "European Union, Benjamin Netanyahu, Kaja Kallas, Viktor Orban, P\u00e9ter Magyar, Hamas, CyberRidge, Shira Kaplan, Unit 8200, Yaron Ben-Schlusch, Technion, Rafael, Iron Dome"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__7cb3f1b8",
-        "label": "A Palestinian photographer\u2019s \u2018search for what remained\u2019 from 1948",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/palestinian-destroyed-villages-nakba-photography/",
-        "published_at": "2026-05-12T19:30:08",
-        "authors": "Yahel Gazit",
-        "tags": "Nakba, destroyed Palestinian villages, activestills, right of return, permit regime"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__e804f613",
-        "label": "FBI Quietly Closed a Probe Into Mahmoud Khalil While He Was in ICE Detention",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/12/mahmoud-khalil-fbi-tip-ice-arrest/",
-        "published_at": "2026-05-12T19:29:00",
-        "authors": "Akela Lacy",
-        "tags": "Justice"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__2291a742",
-        "label": "Hegseth Asks for More Money as Iran War Costs Skyrocket",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/12/hegseth-pentagn-budget-defense-iran-war-cost/",
-        "published_at": "2026-05-12T17:22:12",
-        "authors": "Nick Turse",
-        "tags": "National Security"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__01877ec6",
-        "label": "Starmer's fall from grace echoes mentor Blair",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/starmers-fall-grace-echoes-mentor-blair/51397",
-        "published_at": "2026-05-12T14:12:29",
-        "authors": "Jody McIntyre",
-        "tags": "Keir Starmer, Tony Blair, Labour, Labour Friends of Israel, Morgan McSweeney, Peter Mandelson"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__9a110074",
-        "label": "We Analyzed Thousands of News Articles: Here\u2019s the Proof of Pro-Israel Bias in M...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/12/gaza-media-coverage-israel-bias/",
-        "published_at": "2026-05-12T08:58:00",
-        "authors": "Adam Johnson",
-        "tags": "Politics, World"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__d53ade78",
-        "label": "A Trump U.S. Attorney\u2019s Professional Misconduct Must Be Kept \u201cPrivate and Confid...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/11/trump-new-york-us-attorney-john-sarcone-misconduct/",
-        "published_at": "2026-05-11T22:37:12",
-        "authors": "Matt Sledge",
-        "tags": "Justice"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__97736c15",
-        "label": "Israeli Real Estate Expo Advertising West Bank Settlements Returns to NYC",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/11/real-estate-expo-israel-west-bank-settlement-nyc/",
-        "published_at": "2026-05-11T20:06:58",
-        "authors": "Noah Hurowitz",
-        "tags": "Politics"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__afcb0d7c",
-        "label": "Livestream: The Gaza disarmament trap",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/tamara-nassar/livestream-gaza-disarmament-trap",
-        "published_at": "2026-05-11T18:14:06",
-        "authors": "Tamara Nassar",
-        "tags": null
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__ec237f4c",
-        "label": "How Iran's strength bolsters Gaza's resistance",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/ali-abunimah/how-irans-strength-bolsters-gazas-resistance",
-        "published_at": "2026-05-11T14:35:52",
-        "authors": "Ali Abunimah",
-        "tags": "Board of Peace, Gaza Board of Peace, Nickolay Mladenov, Muhammad Shehada, armed resistance, Hamas"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__5e15d4b4",
-        "label": "Direct action is a weapon of the people",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/direct-action-weapon-people/51396",
-        "published_at": "2026-05-11T07:31:46",
-        "authors": "Jon Cink",
-        "tags": "Palestine Action, Yvette Cooper, Huda Ammori, Shabana Mahmood, Defend Our Juries"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__4353414e",
-        "label": "Dodging FOIA Could Now Mean Arrest and Strip Search, Depending on Who\u2019s Asking",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/09/david-morens-foia-arrest-trump/",
-        "published_at": "2026-05-09T10:18:00",
-        "authors": "Lauren Harper",
-        "tags": "Justice, Voices"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__95a054f4",
-        "label": "Palestine in Pictures: April 2026",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/palestine-pictures-april-2026/51389",
-        "published_at": "2026-05-08T20:04:19",
-        "authors": "Maureen Clare Murphy",
-        "tags": null
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__06dc411d",
-        "label": "Big Finance Might Be Dooming the SPLC \u2014 Even Before Its Day in Court",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/08/splc-donations-banks-censorship/",
-        "published_at": "2026-05-08T18:20:50",
-        "authors": "Rainey Reitman",
-        "tags": "Politics, Voices"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__d0750f70",
-        "label": "Tennessee GOP Moves to Decimate Black Voting Power After Supreme Court\u2019s Blessin...",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/08/gop-memphis-tennessee-gerrymander-map-black-voters/",
-        "published_at": "2026-05-08T17:21:42",
-        "authors": "Natasha Lennard",
-        "tags": "Justice, Politics, Voices"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__387a7e76",
-        "label": "The Israeli left is speaking only to itself",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/israeli-left-peace-conference-palestinians/",
-        "published_at": "2026-05-08T15:01:57",
-        "authors": "Samah Watad",
-        "tags": "Israeli left, Israeli peace camp, peace camp, Zionist Left, Palestinian Citizens of Israel"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__4c28547d",
-        "label": "Israel kills police officers, children in Gaza",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/nora-barrows-friedman/israel-kills-police-officers-children-gaza",
-        "published_at": "2026-05-08T14:48:49",
-        "authors": "Nora Barrows-Friedman",
-        "tags": "Nablus, Ali Samoudi, Shireen Abu Akleh, humanitarian aid, prosthetic limbs, hunger, Global Sumud Flotilla, Avi Bluth"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__1ea546eb",
-        "label": "Amid Hantavirus Panic, the Ivermectin Super Fans Are Back",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/08/hantavirus-cruise-ship-outbreak-ivermectin-covid/",
-        "published_at": "2026-05-08T14:39:40",
-        "authors": "Austin Campbell",
-        "tags": "Politics"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__b632b739",
-        "label": "Something is shifting in Israel\u2019s peace camp",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/peoples-peace-summit-2026/",
-        "published_at": "2026-05-08T14:18:13",
-        "authors": "Meron Rapoport",
-        "tags": "Israeli peace camp, Israeli left, Israeli occupation, Resistance, bereavement, Yair Golan, Local Call"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__fa61754d",
-        "label": "The Supreme Court Ends Multiracial Democracy as We Know It",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/08/supreme-court-voting-rights-act/",
-        "published_at": "2026-05-08T10:00:00",
-        "authors": "The Intercept Briefing",
-        "tags": "The Intercept Briefing"
-      }
-    },
-    {
-      "data": {
-        "id": "article_theintercept_com__46151932",
-        "label": "Hasan Piker Is the Democrats\u2019 New Man on the Trail, Whether They Like It or Not",
-        "type": "Article",
-        "credibility_score": 0.5,
-        "fara_linked": false,
-        "article_link": "https://theintercept.com/2026/05/08/hasan-piker-cori-bush-wesley-bell-missouri-primary/",
-        "published_at": "2026-05-08T09:00:00",
-        "authors": "Devin Thomas O\u2019Shea",
-        "tags": "Voices"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__9fae58f9",
-        "label": "Israel\u2019s war on the West Bank comes for Palestinian greenhouses",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/jayyous-greenhouses-israel-demolition-west-bank/",
-        "published_at": "2026-05-07T14:20:33",
-        "authors": "Meron Rapoport",
-        "tags": "West Bank, palestinian farmers, Jordan Valley, demolition, Apartheid Wall, Local Call, separation barrier, seam zone, ethnic cleansing, forcible displacement"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__1f808780",
-        "label": "Activists who smashed up Elbit plant in Germany fear show trial",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/activists-who-smashed-elbit-plant-germany-fear-show-trial/51387",
-        "published_at": "2026-05-07T09:28:35",
-        "authors": "Jara Nassar",
-        "tags": "Ulm5, Elbit Systems, direct action"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__01230acb",
-        "label": "Genocide denier heads group seeking to muzzle lawmaker Rima Hassan",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/david-cronin/genocide-denier-heads-group-seeking-muzzle-lawmaker-rima-hassan",
-        "published_at": "2026-05-07T06:48:13",
-        "authors": "David Cronin",
-        "tags": "European Union, EU Watch, Rima Hassan, Le Figaro, Samuel Madar, Abba Eban, Theodor Herzl, Keren Hayesod, World Zionist Organization, Raz Segal, International Court of Justice, Helga Tr\u00fcpel, Philigence, David Wollach, Hebrew University of Jerusalem"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__ba515950",
-        "label": "Gaza's painful journeys",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/gazas-painful-journeys/51375",
-        "published_at": "2026-05-06T15:04:45",
-        "authors": "Qasem Waleed El-Farra",
-        "tags": "Gaza genocide, eiGazaDispatches, forcible displacement, Transportation"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__5a5a5228",
-        "label": "Palestinians out, foreign workers in: How Israel is remaking its labor force",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/israel-palestinians-migrant-workers-labor-force/",
-        "published_at": "2026-05-06T10:50:39",
-        "authors": "Charlotte Ritz-Jack, Dana Mills",
-        "tags": "Migrant Workers, Palestinian workers, Ariel Sharon, October 7 war, labor rights, labor law"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__8e56238a",
-        "label": "Medicine shortages amid siege leave people in peril",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/content/medicine-shortages-amid-siege-leave-people-peril/51383",
-        "published_at": "2026-05-05T17:23:48",
-        "authors": "Malak Hijazi",
-        "tags": "Gaza genocide, Gaza health care system, indiscriminate bombing, targeting hospitals, access to medicines"
-      }
-    },
-    {
-      "data": {
-        "id": "article_972mag_com__6eb58e2c",
-        "label": "Despite global outrage, Israel is still blockading our children\u2019s education",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://www.972mag.com/umm-al-khair-school-path-israel-settlers/",
-        "published_at": "2026-05-05T15:59:10",
-        "authors": "Tariq Hathaleen",
-        "tags": "Umm al-Khair, Masafer Yatta, South Hebron Hills, West Bank, education, Palestinian children, Israeli settlers, Israeli army"
-      }
-    },
-    {
-      "data": {
-        "id": "article_electronicintifada_net__ad34b333",
-        "label": "Livestream: Israel struggles against Hizballah's high-tech drones",
-        "type": "Article",
-        "credibility_score": 0.8,
-        "fara_linked": false,
-        "article_link": "https://electronicintifada.net/blogs/eli-gerzon/livestream-israel-struggles-against-hizballahs-high-tech-drones",
-        "published_at": "2026-05-05T15:12:22",
-        "authors": "Eli Gerzon",
-        "tags": "livestream, sexual torture, drones, Hizballah, Maha Hussaini, Euro-Med Human Rights Monitor"
-      }
     }
   ],
   "edges": [
     {
       "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__fcb93535",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__4471d78f",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__549c79f5",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__ca9b0f1d",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "jta",
+        "target": "article_jta_org__c407f10d",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "jta",
+        "target": "article_jta_org__8095eb79",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__14843c54",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__7c5e122b",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "forward",
+        "target": "article_forward_com__77870c3a",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__518b070f",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__c885f18b",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__0d58063b",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__2768f984",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__18b5f351",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "ei",
+        "target": "article_electronicintifada_net__a9737a8e",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__fa3765e2",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "forward",
+        "target": "article_forward_com__1cd995c5",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__ae16ecb3",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__b7b0f310",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__bcf27e15",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__cc23bb2c",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__d39cacfc",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__44e0209c",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__ec760d01",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__0ee396aa",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "jta",
+        "target": "article_jta_org__daceb809",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__2db52378",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__f8e89550",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__eda74c07",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "jta",
+        "target": "article_jta_org__b3191fdf",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "mee",
+        "target": "article_middleeasteye_net__85753e67",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__b168738a",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__1eba51b4",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__0c2f0057",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__9d6bd362",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
         "source": "mee",
         "target": "article_middleeasteye_net__bc32beff",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__a6e32128",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__704b8fb1",
         "relationship": "PUBLISHED"
       }
     },
@@ -2732,6 +2999,13 @@
     },
     {
       "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__769c18d4",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
         "source": "mee",
         "target": "article_middleeasteye_net__327e52bd",
         "relationship": "PUBLISHED"
@@ -2746,8 +3020,29 @@
     },
     {
       "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__ce150e21",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
         "source": "mee",
         "target": "article_middleeasteye_net__8b190b91",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__d0b56549",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__3a1db199",
         "relationship": "PUBLISHED"
       }
     },
@@ -2769,6 +3064,48 @@
       "data": {
         "source": "mee",
         "target": "article_middleeasteye_net__6be934ea",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__37ff9a05",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__7c82de69",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__03c89bf3",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__37688184",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__2a1a714e",
+        "relationship": "PUBLISHED"
+      }
+    },
+    {
+      "data": {
+        "source": "alquds",
+        "target": "article_alquds_com__21a1a6e8",
         "relationship": "PUBLISHED"
       }
     },
@@ -3777,335 +4114,6 @@
       "data": {
         "source": "jta",
         "target": "article_jta_org__32a7aca0",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__71e7a412",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__bc70f012",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "forward",
-        "target": "article_forward_com__ab56a5a3",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "forward",
-        "target": "article_forward_com__2bdefbea",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "forward",
-        "target": "article_forward_com__764ed62f",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__ede49cee",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__cef416e3",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__f612d753",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__234c5a18",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__b1a1dea1",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "jta",
-        "target": "article_jta_org__a6569ed0",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__4fdbc80e",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__365949b1",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "mondoweiss",
-        "target": "article_mondoweiss_net__894830ee",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "mondoweiss",
-        "target": "article_mondoweiss_net__386dc23b",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__5a619afd",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__bbd00413",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__ac4d7140",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__2538f25a",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__7cb3f1b8",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__e804f613",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__2291a742",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__01877ec6",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__9a110074",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__d53ade78",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__97736c15",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__afcb0d7c",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__ec237f4c",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__5e15d4b4",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__4353414e",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__95a054f4",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__06dc411d",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__d0750f70",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__387a7e76",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__4c28547d",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__1ea546eb",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__b632b739",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__fa61754d",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "intercept",
-        "target": "article_theintercept_com__46151932",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__9fae58f9",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__1f808780",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__01230acb",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__ba515950",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__5a5a5228",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__8e56238a",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "972mag",
-        "target": "article_972mag_com__6eb58e2c",
-        "relationship": "PUBLISHED"
-      }
-    },
-    {
-      "data": {
-        "source": "ei",
-        "target": "article_electronicintifada_net__ad34b333",
         "relationship": "PUBLISHED"
       }
     }
