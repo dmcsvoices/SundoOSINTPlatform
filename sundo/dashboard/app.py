@@ -5,7 +5,10 @@ import logging
 from pathlib import Path
 from sqlite3 import OperationalError
 
-from flask import Flask, render_template, jsonify, request
+import os
+
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from neo4j import GraphDatabase, basic_auth
 from neo4j.exceptions import ServiceUnavailable, AuthError
 
@@ -32,6 +35,11 @@ if not any(isinstance(h, logging.FileHandler) and h.baseFilename.endswith("sundo
     logging.getLogger().addHandler(_errors_file_handler)
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# Hardcoded single-user credentials (hashed)
+_ADMIN_USER = "admin"
+_ADMIN_PASS_HASH = generate_password_hash("sundopi")
 
 
 # ---------------------------------------------------------------------------
@@ -104,6 +112,40 @@ def _feed_url_to_name(feed_url: str) -> str:
         "https://www.jta.org/feed": "Jewish Telegraphic Agency",
     }
     return mapping.get(feed_url, feed_url)
+
+
+# ---------------------------------------------------------------------------
+# Auth guards
+# ---------------------------------------------------------------------------
+
+@app.before_request
+def require_login():
+    """Redirect unauthenticated users to /login (except for login route and static assets)."""
+    if request.endpoint in ("login", "static"):
+        return None
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login() -> str:
+    """Render login form or validate credentials."""
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        if username == _ADMIN_USER and check_password_hash(_ADMIN_PASS_HASH, password):
+            session["logged_in"] = True
+            return redirect(url_for("index"))
+        error = "Invalid username or password."
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout() -> str:
+    """Clear session and redirect to login."""
+    session.clear()
+    return redirect(url_for("login"))
 
 
 # ---------------------------------------------------------------------------
