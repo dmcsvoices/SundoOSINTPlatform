@@ -200,18 +200,17 @@ def save_org(org: dict[str, Any], details: dict[str, Any] | None) -> None:
         org: Organization summary dict (must contain 'ein', 'name').
         details: Full organization details dict or None.
     """
-    conn = get_db_connection()
+    conn = get_connection()
     try:
         ein = org.get("ein", "")
         name = org.get("name", "")
         state = org.get("state") or org.get("statecd", "")
-        ntee = org.get("ntee_code") or org.get("ntee", "")
+        city = org.get("city", "")
 
-        revenue = None
-        expenses = None
-        assets = None
-        program_descriptions = ""
-        hasbara_flags = None
+        total_revenue = None
+        total_assets = None
+        tax_year = None
+        raw_json = None
 
         if details:
             filings = details.get("filings_with_data", []) or details.get("filings", [])
@@ -219,28 +218,26 @@ def save_org(org: dict[str, Any], details: dict[str, Any] | None) -> None:
                 latest = filings[0]
                 parsed = parse_filing(latest)
                 if parsed:
-                    revenue = parsed["revenue"]
-                    expenses = parsed["expenses"]
-                    assets = parsed["assets"]
-                    program_descriptions = parsed["program_descriptions"]
-                    hasbara_flags = parsed["hasbara_flags"]
+                    total_revenue = parsed["revenue"]
+                    total_assets = parsed["assets"]
+                tax_year = latest.get("tax_prd_yr") or latest.get("tax_year")
+                raw_json = json.dumps(details, default=str)
 
         conn.execute(
             """
-            INSERT INTO irs990_orgs (ein, name, ntee_code, state, revenue, expenses, assets, program_descriptions, hasbara_flags)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO irs990_orgs (ein, name, city, state, total_revenue, total_assets, tax_year, filed_at, raw_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
             ON CONFLICT(ein) DO UPDATE SET
                 name=excluded.name,
-                ntee_code=excluded.ntee_code,
+                city=excluded.city,
                 state=excluded.state,
-                revenue=excluded.revenue,
-                expenses=excluded.expenses,
-                assets=excluded.assets,
-                program_descriptions=excluded.program_descriptions,
-                hasbara_flags=excluded.hasbara_flags,
-                fetched_at=CURRENT_TIMESTAMP
+                total_revenue=excluded.total_revenue,
+                total_assets=excluded.total_assets,
+                tax_year=excluded.tax_year,
+                filed_at=CURRENT_TIMESTAMP,
+                raw_json=excluded.raw_json
             """,
-            (ein, name, ntee, state, revenue, expenses, assets, program_descriptions, hasbara_flags),
+            (ein, name, city, state, total_revenue, total_assets, tax_year, raw_json),
         )
 
         # Save grants from latest filing
@@ -248,13 +245,13 @@ def save_org(org: dict[str, Any], details: dict[str, Any] | None) -> None:
             filings = details.get("filings_with_data", []) or details.get("filings", [])
             if filings:
                 latest = filings[0]
-                tax_year = latest.get("tax_prd_yr") or latest.get("tax_year") or 0
-                grants = extract_grants(latest, ein, int(tax_year) if tax_year else 0)
+                tax_year_grants = latest.get("tax_prd_yr") or latest.get("tax_year") or 0
+                grants = extract_grants(latest, ein, int(tax_year_grants) if tax_year_grants else 0)
                 for g in grants:
                     try:
                         conn.execute(
                             """
-                            INSERT INTO irs990_grants (org_ein, grantee_name, grantee_ein, amount, purpose, tax_year)
+                            INSERT INTO irs990_grants (ein, grantee_name, grantee_ein, amount_usd, purpose, tax_year)
                             VALUES (?, ?, ?, ?, ?, ?)
                             """,
                             (

@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import logging
 import signal
-import sqlite3
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 try:
     from apscheduler.schedulers.background import BackgroundScheduler
@@ -26,14 +25,59 @@ from sundo.config import (
     NEO4J_PASSWORD,
     NEO4J_URI,
     NEO4J_USER,
-    SQLITE_PATH,
 )
+from sundo.db.sqlite_store import init_db
+
+# Ingest modules — wrapped in try/except so missing deps don't crash startup
+try:
+    from sundo.ingest.rss_aggregator import run as _run_rss
+except Exception:
+    _run_rss = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.ingest.fara_scraper import run as _run_fara
+except Exception:
+    _run_fara = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.ingest.irs990_monitor import run as _run_irs990
+except Exception:
+    _run_irs990 = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.ingest.social_monitor import run as _run_social
+except Exception:
+    _run_social = None  # type: ignore[misc,assignment]
+
+# Detection modules
+try:
+    from sundo.detect.timing_analysis import run as _run_timing
+except Exception:
+    _run_timing = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.detect.similarity import run as _run_similarity
+except Exception:
+    _run_similarity = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.detect.network_graph import run as _run_network
+except Exception:
+    _run_network = None  # type: ignore[misc,assignment]
+
+try:
+    from sundo.detect.disclosure_audit import run as _run_disclosure
+except Exception:
+    _run_disclosure = None  # type: ignore[misc,assignment]
+
+# Report / amplify modules (already imported directly in original)
 from sundo.report.alert_engine import check_and_alert
 from sundo.report.cytoscape_export import export_graph
 from sundo.report.report_generator import generate_report
 from sundo.amplify.digest import send_digest
 from sundo.amplify.ftc_packager import generate_ftc_packages
 from sundo.amplify.voice_registry import ensure_seed_voices
+
 try:
     from sundo.dashboard.app import run_dashboard
 except Exception:
@@ -42,46 +86,21 @@ except Exception:
 logger = logging.getLogger("sundo.main")
 
 
-def _init_sqlite() -> None:
-    """Ensure SQLite database and core tables exist."""
-    SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(SQLITE_PATH))
-    conn.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS fara_filings (
-            id INTEGER PRIMARY KEY,
-            registrant_name TEXT,
-            foreign_principal_country TEXT,
-            filed_at TEXT
-        );
-        CREATE TABLE IF NOT EXISTS ftc_violations (
-            id INTEGER PRIMARY KEY,
-            handle TEXT,
-            platform TEXT,
-            amount REAL,
-            nature TEXT,
-            post_url TEXT,
-            payment_evidence TEXT,
-            status TEXT
-        );
-        CREATE TABLE IF NOT EXISTS rss_articles (
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            url TEXT,
-            source TEXT,
-            published_at TEXT
-        );
-        CREATE TABLE IF NOT EXISTS coordination_events (
-            id TEXT PRIMARY KEY,
-            pattern_type TEXT,
-            detected_at TEXT,
-            account_count INTEGER
-        );
-        """
-    )
-    conn.commit()
-    conn.close()
-    logger.info("SQLite initialized: %s", SQLITE_PATH)
+def _safe_run(name: str, fn: Callable[[], Any] | None) -> None:
+    """Execute a job function, catching and logging any exception.
+
+    This prevents one failing ingest/detection job from crashing the
+    entire scheduler or stopping unrelated jobs.
+    """
+    if fn is None:
+        logger.warning("Job '%s' is unavailable (import failed); skipping", name)
+        return
+    try:
+        logger.info("Starting job: %s", name)
+        result = fn()
+        logger.info("Job '%s' completed%s", name, f" (result: {result})" if result is not None else "")
+    except Exception:
+        logger.exception("Job '%s' failed", name)
 
 
 def _init_neo4j_schema() -> None:
@@ -112,10 +131,10 @@ def _init_neo4j_schema() -> None:
 
 def _register_jobs(scheduler: Any) -> None:
     """Register all APScheduler jobs with their schedules."""
-    # Ingest jobs (stubs — real implementations live in sundo.ingest / sundo.detect)
-    # FARA: weekly Sunday 02:00
+
+    # ── Ingest jobs ──
     scheduler.add_job(
-        lambda: logger.info("FARA ingest job stub"),
+        lambda: _safe_run("fara_ingest", _run_fara),
         trigger="cron",
         day_of_week="sun",
         hour=2,
@@ -123,9 +142,8 @@ def _register_jobs(scheduler: Any) -> None:
         id="fara_ingest",
         replace_existing=True,
     )
-    # IRS990: monthly 1st 03:00
     scheduler.add_job(
-        lambda: logger.info("IRS990 ingest job stub"),
+        lambda: _safe_run("irs990_ingest", _run_irs990),
         trigger="cron",
         day=1,
         hour=3,
@@ -133,95 +151,88 @@ def _register_jobs(scheduler: Any) -> None:
         id="irs990_ingest",
         replace_existing=True,
     )
-    # RSS: every 2 hours
     scheduler.add_job(
-        lambda: logger.info("RSS ingest job stub"),
+        lambda: _safe_run("rss_ingest", _run_rss),
         trigger="interval",
         hours=2,
         id="rss_ingest",
         replace_existing=True,
     )
-    # Social: every 4 hours
     scheduler.add_job(
-        lambda: logger.info("Social ingest job stub"),
+        lambda: _safe_run("social_ingest", _run_social),
         trigger="interval",
         hours=4,
         id="social_ingest",
         replace_existing=True,
     )
-    # Timing analysis: every 6 hours
+
+    # ── Detection jobs ──
     scheduler.add_job(
-        lambda: logger.info("Timing analysis job stub"),
+        lambda: _safe_run("timing_analysis", _run_timing),
         trigger="interval",
         hours=6,
         id="timing_analysis",
         replace_existing=True,
     )
-    # Similarity: every 6 hours (after timing)
     scheduler.add_job(
-        lambda: logger.info("Similarity job stub"),
+        lambda: _safe_run("similarity", _run_similarity),
         trigger="interval",
         hours=6,
         minutes=5,
         id="similarity",
         replace_existing=True,
     )
-    # Network graph: nightly
     scheduler.add_job(
-        lambda: logger.info("Network graph job stub"),
+        lambda: _safe_run("network_graph", _run_network),
         trigger="cron",
         hour=2,
         minute=30,
         id="network_graph",
         replace_existing=True,
     )
-    # Disclosure audit: nightly
     scheduler.add_job(
-        lambda: logger.info("Disclosure audit job stub"),
+        lambda: _safe_run("disclosure_audit", _run_disclosure),
         trigger="cron",
         hour=3,
         minute=0,
         id="disclosure_audit",
         replace_existing=True,
     )
-    # Report generator: nightly
+
+    # ── Report / amplify jobs ──
     scheduler.add_job(
-        generate_report,
+        lambda: _safe_run("report_generator", generate_report),
         trigger="cron",
         hour=4,
         minute=0,
         id="report_generator",
         replace_existing=True,
     )
-    # Cytoscape export: nightly (after report)
     scheduler.add_job(
-        export_graph,
+        lambda: _safe_run("cytoscape_export", export_graph),
         trigger="cron",
         hour=4,
         minute=30,
         id="cytoscape_export",
         replace_existing=True,
     )
-    # Digest: daily 07:00
     scheduler.add_job(
-        send_digest,
+        lambda: _safe_run("daily_digest", send_digest),
         trigger="cron",
         hour=7,
         minute=0,
         id="daily_digest",
         replace_existing=True,
     )
-    # Immediate alert check every 15 minutes
     scheduler.add_job(
-        check_and_alert,
+        lambda: _safe_run("alert_check", check_and_alert),
         trigger="interval",
         minutes=15,
         id="alert_check",
         replace_existing=True,
     )
-    # Seed voice registry on startup and weekly
     scheduler.add_job(
-        ensure_seed_voices,
+        lambda: _safe_run("voice_registry", ensure_seed_voices),
         trigger="cron",
         day_of_week="mon",
         hour=5,
@@ -229,9 +240,8 @@ def _register_jobs(scheduler: Any) -> None:
         id="voice_registry",
         replace_existing=True,
     )
-    # FTC packager nightly
     scheduler.add_job(
-        generate_ftc_packages,
+        lambda: _safe_run("ftc_packager", generate_ftc_packages),
         trigger="cron",
         hour=5,
         minute=30,
@@ -248,7 +258,13 @@ def main() -> None:
     )
     logger.info("Sundo Pi starting up...")
 
-    _init_sqlite()
+    # Initialise SQLite schema (single source of truth in sqlite_store.py)
+    try:
+        init_db()
+    except Exception:
+        logger.exception("SQLite init failed")
+        sys.exit(1)
+
     _init_neo4j_schema()
     ensure_seed_voices()
 
@@ -275,11 +291,13 @@ def main() -> None:
     # Start Flask dashboard in a background thread
     if run_dashboard is not None:
         import threading
+
         def _start_dashboard():
             try:
                 run_dashboard()
             except Exception as exc:
                 logger.warning("Dashboard failed to start: %s", exc)
+
         threading.Thread(target=_start_dashboard, daemon=True, name="dashboard").start()
         logger.info("Dashboard thread started")
 

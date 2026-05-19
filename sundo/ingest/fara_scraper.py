@@ -13,14 +13,14 @@ from typing import Any
 import requests
 from bs4 import BeautifulSoup
 
-from sundo.config import BASE_DIR, LOG_FORMAT, LOG_LEVEL
+from sundo.config import BASE_DIR, LOG_FORMAT, LOG_LEVEL, FARA_TARGETS, MIN_REQUEST_DELAY, MAX_REQUEST_DELAY, MAX_RETRIES, RETRY_BACKOFF
 from sundo.db.sqlite_store import init_db, get_connection
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
 logger = logging.getLogger("fara_scraper")
 
-BASE_URL = "https://efs.fara.justice.gov/ords/fara/f"
-SEARCH_URL = f"{BASE_URL}?p=API"
+BASE_URL = "https://efile.fara.gov/ords/fara/f"
+SEARCH_URL = f"{BASE_URL}?p=1235:10"
 
 HEADERS = {
     "User-Agent": (
@@ -77,7 +77,8 @@ def _log_parse_failure(url: str, raw_content: str, reason: str) -> None:
         raw_content: Raw HTML or text content.
         reason: Human-readable reason for failure.
     """
-    log_path = "/home/darren/sundo-pi/logs/sundo_errors.log"
+    from pathlib import Path
+    log_path = Path("/home/darren/sundo-pi/logs/sundo_errors.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "a", encoding="utf-8") as fh:
         fh.write(f"\n{'=' * 60}\n")
@@ -155,9 +156,9 @@ def _extract_fara_filings(soup: BeautifulSoup, source_url: str) -> list[dict[str
         for link in row.find_all("a", href=True):
             href = link["href"]
             if "exhibit_b" in href.lower() or "exb" in href.lower():
-                exhibit_b = href if href.startswith("http") else f"https://efs.fara.justice.gov{href}"
+                exhibit_b = href if href.startswith("http") else f"https://efile.fara.gov{href}"
             elif "exhibit_c" in href.lower() or "exc" in href.lower():
-                exhibit_c = href if href.startswith("http") else f"https://efs.fara.justice.gov{href}"
+                exhibit_c = href if href.startswith("http") else f"https://efile.fara.gov{href}"
 
         filings.append(
             {
@@ -205,6 +206,15 @@ def search_fara_by_principal(principal_name: str, session: requests.Session) -> 
     search_form = soup.find("form")
     if search_form:
         action = search_form.get("action", SEARCH_URL)
+        # Fix relative form action URLs
+        if action and not action.startswith("http"):
+            if action.startswith("/"):
+                action = f"https://efile.fara.gov{action}"
+            else:
+                action = f"https://efile.fara.gov/ords/fara/{action}"
+        if not action:
+            action = SEARCH_URL
+        
         inputs = search_form.find_all("input")
         payload: dict[str, str] = {}
         for inp in inputs:
@@ -227,7 +237,8 @@ def search_fara_by_principal(principal_name: str, session: requests.Session) -> 
             resp.raise_for_status()
         except requests.RequestException as exc:
             logger.error("FARA search POST failed: %s", exc)
-            _log_parse_failure(action, resp.text if "resp" in dir() else "", f"POST failed: {exc}")
+            raw_text = resp.text if "resp" in dir() and hasattr(resp, "text") else ""
+            _log_parse_failure(action, raw_text, f"POST failed: {exc}")
             return []
         soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -263,37 +274,54 @@ def save_filings(filings: list[dict[str, Any]]) -> int:
     if not filings:
         return 0
 
-    conn = get_db_connection()
+    conn = get_connection()
     inserted = 0
     try:
         for f in filings:
             try:
+                # Build a registration_number from registrant + principal if none exists
+                reg_num = f.get("registration_number", "")
+                if not reg_num:
+                    reg_num = f"{f.get('registrant_name', '')}-{f.get('foreign_principal_name', '')}".replace(" ", "-")[:64]
+
+                # Extract amount from disbursements text if present
+                amount_usd = None
+                disbursements = f.get("disbursements", "")
+                if disbursements:
+                    import re
+                    m = re.search(r"[\d,]+\.?\d*", str(disbursements).replace(",", ""))
+                    if m:
+                        try:
+                            amount_usd = float(m.group())
+                        except ValueError:
+                            pass
+
+                # Use exhibit_b or exhibit_c as pdf_url if available
+                pdf_url = f.get("exhibit_b", "") or f.get("exhibit_c", "")
+
                 conn.execute(
                     """
                     INSERT INTO fara_filings (
-                        registrant_name, registrant_address, registration_date,
-                        foreign_principal_name, foreign_principal_country,
-                        activities, disbursements, exhibit_b, exhibit_c,
-                        raw_html, source_url
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(registrant_name, foreign_principal_name, registration_date)
-                    DO UPDATE SET
-                        raw_html=excluded.raw_html,
-                        source_url=excluded.source_url,
-                        fetched_at=CURRENT_TIMESTAMP
+                        registration_number, registrant_name, foreign_principal,
+                        country, filing_date, form_type, amount_usd, purpose,
+                        pdf_url, raw_text, ingested_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(registration_number, filing_date) DO UPDATE SET
+                        raw_text=excluded.raw_text,
+                        pdf_url=excluded.pdf_url,
+                        ingested_at=CURRENT_TIMESTAMP
                     """,
                     (
-                        f["registrant_name"],
-                        f["registrant_address"],
-                        f["registration_date"],
-                        f["foreign_principal_name"],
-                        f["foreign_principal_country"],
-                        f["activities"],
-                        f["disbursements"],
-                        f["exhibit_b"],
-                        f["exhibit_c"],
-                        f["raw_html"],
-                        f["source_url"],
+                        reg_num,
+                        f.get("registrant_name", ""),
+                        f.get("foreign_principal_name", ""),
+                        f.get("foreign_principal_country", ""),
+                        f.get("registration_date", ""),
+                        "unknown",
+                        amount_usd,
+                        f.get("activities", ""),
+                        pdf_url,
+                        f.get("raw_html", ""),
                     ),
                 )
                 inserted += 1
