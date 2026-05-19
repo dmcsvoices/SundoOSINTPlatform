@@ -82,7 +82,7 @@
     <div id="hover">Hover a node for details.</div>
     <div id="filter-controls" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #ddd;">
       <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px;">
-        <input type="checkbox" id="show-articles" style="margin-right: 6px;">
+        <input type="checkbox" id="show-articles" style="margin-right: 6px;" checked>
         Show Articles
       </label>
     </div>
@@ -186,9 +186,6 @@
       cy.on('layoutstop', function() {
         cy.fit(cy.elements(), 40);
       });
-
-      cy.nodes('[type = "Article"]').hide();
-      cy.elements('[type = "Article"]').connectedEdges().hide();
 
       document.getElementById('show-articles').addEventListener('change', function(e) {
         if (e.target.checked) {
