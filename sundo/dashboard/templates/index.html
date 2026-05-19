@@ -506,8 +506,8 @@
           .then(r => r.json())
           .then(function(d) {
             const win = window.open('', '_blank');
-            win.document.write('<pre style="font-family:monospace;padding:20px;white-space:pre-wrap">' + d.content + '</pre>';
-            win.document.write('<p><a href="' + d.submit_url + '" target="_blank">Submit to FTC →</a></p>';
+            win.document.write('<pre style="font-family:monospace;padding:20px;white-space:pre-wrap">' + d.content + '<' + '/pre>');
+            win.document.write('<p><a href="' + d.submit_url + '" target="_blank">Submit to FTC →</a></p>');
           });
       }
 
