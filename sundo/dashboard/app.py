@@ -122,7 +122,16 @@ def _feed_url_to_name(feed_url: str) -> str:
         "https://forward.com/feed/": "The Forward",
         "https://www.jta.org/feed": "Jewish Telegraphic Agency",
     }
-    return mapping.get(feed_url, feed_url)
+    # Try exact match first
+    name = mapping.get(feed_url)
+    if name:
+        return name
+    # Normalise and try again (strip query params, trailing slash)
+    norm = feed_url.split("?")[0].rstrip("/")
+    for url, name in mapping.items():
+        if url.split("?")[0].rstrip("/") == norm:
+            return name
+    return feed_url
 
 
 def _article_id(link: str) -> str:
@@ -532,11 +541,12 @@ def api_node_source(source_id: str):
 
         articles = []
         try:
+            norm_feed_url = feed_url.split("?")[0].rstrip("/")
             rows = _sqlite_run(
                 "SELECT title, link, feed_url, source_type, published_at, authors, tags "
-                "FROM rss_articles WHERE feed_url = ? OR feed_url = ? "
+                "FROM rss_articles WHERE feed_url = ? OR feed_url = ? OR feed_url = ? "
                 "ORDER BY published_at DESC LIMIT 50",
-                (feed_url, feed_url.rstrip("/")),
+                (feed_url, feed_url.rstrip("/"), norm_feed_url),
             )
             logger.info("SQLite rows result: %s", rows)
         except Exception as exc:

@@ -107,7 +107,7 @@
     {
       "data": {
         "id": "intercept",
-        "label": "https://theintercept.com/feed/",
+        "label": "The Intercept",
         "type": "Source",
         "source_type": "monitor",
         "credibility_score": 0.5,

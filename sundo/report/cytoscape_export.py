@@ -83,7 +83,8 @@ _FEED_SOURCE_MAP: dict[str, tuple[str, str, float]] = {}
 
 
 def _norm_url(url: str) -> str:
-    """Normalise URL for matching: strip trailing slash."""
+    """Normalise URL for matching: strip query params and trailing slash."""
+    url = url.split("?")[0]
     return url.rstrip("/")
 
 

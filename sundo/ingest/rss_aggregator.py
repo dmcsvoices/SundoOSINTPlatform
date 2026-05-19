@@ -18,7 +18,7 @@ try:
 except Exception:  # pragma: no cover
     feedparser = None  # type: ignore[misc,assignment]
 
-from sundo.config import BASE_DIR, LOG_FORMAT, LOG_LEVEL
+from sundo.config import BASE_DIR, LOG_FORMAT, LOG_LEVEL, AMPLIFY_FEEDS, MONITOR_FEEDS
 from sundo.db.sqlite_store import init_db, insert_many
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
@@ -46,11 +46,11 @@ MONITOR_FEEDS: Dict[str, str] = {
 }
 
 # Combined catalogue: name -> (url, source_type)
-ALL_FEEDS: Dict[str, tuple[str, str]] = {}
-for _name, _url in AMPLIFY_FEEDS.items():
-    ALL_FEEDS[_name] = (_url, "amplify")
-for _name, _url in MONITOR_FEEDS.items():
-    ALL_FEEDS[_name] = (_url, "monitor")
+_ALL_FEEDS: Dict[str, tuple[str, str]] = {}
+for _name, _url in AMPLIFY_FEEDS:
+    _ALL_FEEDS[_name] = (_url, "amplify")
+for _name, _url in MONITOR_FEEDS:
+    _ALL_FEEDS[_name] = (_url, "monitor")
 
 _MIN_DELAY = 2.0
 _MAX_DELAY = 5.0
@@ -143,6 +143,9 @@ def fetch_feed(feed_url: str, source_name: str, source_type: str) -> List[Dict[s
 
     logger.info("Fetching feed: %s (%s)", source_name, feed_url)
 
+    # Normalise feed URL for storage (strip query params so ?rss variants� collapse to the canonical form)
+    canonical_feed_url = feed_url.split("?")[0].rstrip("/")
+
     try:
         feed = feedparser.parse(feed_url)
     except Exception as exc:
@@ -171,7 +174,7 @@ def fetch_feed(feed_url: str, source_name: str, source_type: str) -> List[Dict[s
 
             articles.append(
                 {
-                    "feed_url": feed_url,
+                    "feed_url": canonical_feed_url,
                     "source_type": source_type,
                     "title": title,
                     "summary": summary,
@@ -205,7 +208,7 @@ def run() -> int:
 
     all_articles: List[Dict[str, Any]] = []
 
-    for source_name, (feed_url, source_type) in ALL_FEEDS.items():
+    for source_name, (feed_url, source_type) in _ALL_FEEDS.items():
         try:
             articles = fetch_feed(feed_url, source_name, source_type)
             all_articles.extend(articles)
