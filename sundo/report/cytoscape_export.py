@@ -201,7 +201,6 @@ def _sqlite_articles() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list
                     "id": art_id,
                     "label": title[:80] + ("..." if len(title) > 80 else ""),
                     "type": "Article",
-                    "credibility_score": cred,
                     "fara_linked": False,
                     "article_link": link,
                     "published_at": row["published_at"],

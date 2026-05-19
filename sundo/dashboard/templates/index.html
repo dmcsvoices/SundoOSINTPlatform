@@ -213,7 +213,7 @@
       cy.on('mouseover', 'node', function(evt) {
         const n = evt.target;
         const info = document.getElementById('hover');
-        const cs = n.data('credibility_score');
+        const cs = (n.data('type') === 'Person') ? n.data('credibility_score') : null;
         const csText = (cs !== null && cs !== undefined) ? '<br>Credibility: ' + Number(cs).toFixed(2) : '';
         info.innerHTML = '<strong>' + (n.data('label') || n.id()) + '</strong><br>Type: ' + (n.data('type') || 'Unknown') + csText;
       });
