@@ -37,12 +37,20 @@ if not any(isinstance(h, logging.FileHandler) and h.baseFilename.endswith("sundo
     _errors_file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
     logging.getLogger().addHandler(_errors_file_handler)
 
+# Non-secret Flask config (secret key is in .env)
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 
-# Hardcoded single-user credentials (hashed)
-_ADMIN_USER = "admin"
-_ADMIN_PASS_HASH = generate_password_hash("sundopi")
+# Load secret key from env (falls back to a generated one if missing, but prefer env)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
+
+# Admin credentials from env (hashed at boot so plaintext is not stored in memory)
+_ADMIN_USER = os.getenv("DASHBOARD_USER", "admin")
+_admin_plain = os.getenv("DASHBOARD_PASSWORD", "")
+_ADMIN_PASS_HASH = generate_password_hash(_admin_plain) if _admin_plain else generate_password_hash("sundopi")
+
+# If no password configured, log a loud warning
+if not _admin_plain:
+    logger.warning("DASHBOARD_PASSWORD not set in .env — using default 'sundopi'. CHANGE THIS!")
 
 
 # ---------------------------------------------------------------------------
