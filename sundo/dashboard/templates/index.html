@@ -199,7 +199,20 @@
             'text-background-opacity': 0.8
           }}
         ],
-        layout: { name: 'cose', padding: 30, animate: true, animationDuration: 500 }
+        layout: {
+          name: 'concentric',
+          fit: true,
+          padding: 30,
+          animate: true,
+          animationDuration: 500,
+          levelWidth: function() { return 1; },
+          concentric: function(n) {
+            const type = n.data('type');
+            if (type === 'Source') return 10;
+            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
+            return 1;
+          }
+        }
       });
       console.log('Sundo: cytoscape initialized with', cy.nodes().length, 'total nodes');
       console.log('Sundo: article-class nodes:', cy.nodes('.article').length);
@@ -241,9 +254,23 @@
           edges.hide();
           console.log('Sundo: hid articles');
         }
+        // Re-run concentric layout after toggle so rings recenter
         const visible = cy.nodes(':visible');
         if (visible.length > 0) {
-          cy.fit(visible, 40);
+          cy.layout({
+            name: 'concentric',
+            fit: true,
+            padding: 30,
+            animate: true,
+            animationDuration: 400,
+            levelWidth: function() { return 1; },
+            concentric: function(n) {
+              const type = n.data('type');
+              if (type === 'Source') return 10;
+              if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
+              return 1;
+            }
+          }).run();
         }
       });
 
