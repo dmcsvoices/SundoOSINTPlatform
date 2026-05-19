@@ -129,7 +129,9 @@
   <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
   <script>
     try {
+      console.log('Sundo: starting graph init...');
       const graph = JSON.parse(document.getElementById('graph-data').textContent);
+      console.log('Sundo: parsed', graph.nodes.length, 'nodes,', graph.edges.length, 'edges');
 
       function nodeColor(n) {
         const t = n.data.type || 'Unknown';
@@ -146,10 +148,12 @@
       });
 
       document.getElementById('loading').style.display = 'none';
+      console.log('Sundo: loading hidden');
 
       if (typeof cytoscape === 'undefined') {
         throw new Error('Cytoscape library failed to load from CDN');
       }
+      console.log('Sundo: cytoscape loaded');
 
       const cy = cytoscape({
         container: document.getElementById('cy'),
@@ -188,6 +192,12 @@
         ],
         layout: { name: 'cose', padding: 30, animate: true, animationDuration: 500 }
       });
+      console.log('Sundo: cytoscape initialized');
+
+      // Safety: force-hide loading after 3s regardless
+      setTimeout(function() {
+        document.getElementById('loading').style.display = 'none';
+      }, 3000);
 
       cy.on('mouseover', 'node', function(evt) {
         const n = evt.target;
@@ -208,10 +218,10 @@
       document.getElementById('show-articles').addEventListener('change', function(e) {
         if (e.target.checked) {
           cy.nodes('[type = "Article"]').show();
-          cy.elements('[type = "Article"]').connectedEdges().show();
+          cy.nodes('[type = "Article"]').connectedEdges().show();
         } else {
           cy.nodes('[type = "Article"]').hide();
-          cy.elements('[type = "Article"]').connectedEdges().hide();
+          cy.nodes('[type = "Article"]').connectedEdges().hide();
         }
         const visible = cy.nodes(':visible');
         if (visible.length > 0) {
