@@ -20,6 +20,60 @@
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       font-size: 16px; color: #666;
     }
+    /* Side panel */
+    #detail-panel {
+      position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+      background: #fff; border-left: 1px solid #ddd; box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+      transition: right 0.25s ease; overflow-y: auto; z-index: 1000;
+      padding: 20px; box-sizing: border-box; font-family: sans-serif; font-size: 13px; color: #222;
+    }
+    #detail-panel.panel-open { right: 0; }
+    #panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee;
+    }
+    #panel-title { font-size: 15px; font-weight: 600; }
+    #panel-close { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; line-height: 1; }
+    .panel-section { margin-bottom: 20px; }
+    .panel-section-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #888; margin-bottom: 8px;
+    }
+    .panel-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f5f5f5; }
+    .panel-row-label { color: #666; }
+    .panel-row-value { font-weight: 500; text-align: right; max-width: 60%; word-break: break-word; }
+    .score-bar { height: 6px; background: #eee; border-radius: 3px; margin-top: 4px; }
+    .score-bar-fill { height: 100%; border-radius: 3px; background: #e05a2b; }
+    .score-bar-fill.green { background: #2b8a3e; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-red { background: #ffe3e3; color: #c92a2a; }
+    .badge-orange { background: #fff3bf; color: #e67700; }
+    .badge-green { background: #d3f9d8; color: #2b8a3e; }
+    .badge-blue { background: #dbe4ff; color: #1971c2; }
+    .badge-gray { background: #f1f3f5; color: #495057; }
+    .article-item { padding: 8px 0; border-bottom: 1px solid #f5f5f5; line-height: 1.4; }
+    .article-item a { color: #1971c2; text-decoration: none; font-weight: 500; }
+    .article-item a:hover { text-decoration: underline; }
+    .article-meta { font-size: 11px; color: #888; margin-top: 2px; }
+    .action-btn {
+      display: inline-block; padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd;
+      background: #f8f9fa; cursor: pointer; font-size: 12px; font-weight: 500;
+      margin-right: 8px; margin-top: 4px; text-decoration: none; color: #222;
+    }
+    .action-btn:hover { background: #e9ecef; }
+    .action-btn.primary { background: #1971c2; color: #fff; border-color: #1971c2; }
+    .action-btn.primary:hover { background: #1564ad; }
+    .loading-state { color: #888; font-size: 13px; padding: 20px 0; text-align: center; }
+    @media (prefers-color-scheme: dark) {
+      #detail-panel { background: #1a1a1a; border-left-color: #333; color: #e0e0e0; }
+      #panel-header { border-bottom-color: #333; }
+      .panel-row { border-bottom-color: #2a2a2a; }
+      .panel-row-label { color: #aaa; }
+      .article-item { border-bottom-color: #2a2a2a; }
+      .action-btn { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+      .action-btn:hover { background: #333; }
+      .score-bar { background: #333; }
+    }
   </style>
 </head>
 <body>
@@ -42,6 +96,13 @@
   </div>
   <div id="loading">Loading graph...</div>
   <div id="cy"></div>
+  <div id="detail-panel" class="panel-closed">
+    <div id="panel-header">
+      <span id="panel-title"></span>
+      <button id="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div id="panel-body"></div>
+  </div>
 
   <script type="application/json" id="graph-data">
     {{ graph_json | safe }}
@@ -142,6 +203,319 @@
           cy.fit(visible, 40);
         }
       });
+
+      // ---- Click handlers + side panel ----
+      cy.on('tap', 'node', function(evt) {
+        const node = evt.target;
+        const data = node.data();
+        openPanel(data);
+      });
+      cy.on('tap', function(evt) {
+        if (evt.target === cy) closePanel();
+      });
+
+      function openPanel(nodeData) {
+        const panel = document.getElementById('detail-panel');
+        const body = document.getElementById('panel-body');
+        const title = document.getElementById('panel-title');
+        body.innerHTML = '<div class="loading-state">Loading...</div>';
+        panel.classList.add('panel-open');
+        const type = nodeData.type;
+        const id = nodeData.id;
+        if (type === 'Person') {
+          title.textContent = '@' + id;
+          fetchPersonDetail(id);
+        } else if (type === 'Organization') {
+          title.textContent = nodeData.label || id;
+          fetchOrgDetail(id);
+        } else if (type === 'PalestinianVoice') {
+          title.textContent = '@' + id;
+          fetchVoiceDetail(id);
+        } else {
+          title.textContent = nodeData.label || 'Article';
+          fetchOtherDetail(id);
+        }
+      }
+
+      function closePanel() {
+        document.getElementById('detail-panel').classList.remove('panel-open');
+      }
+
+      function fetchPersonDetail(handle) {
+        fetch('/api/node/person/' + encodeURIComponent(handle))
+          .then(r => r.json())
+          .then(d => renderPersonPanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load node data.</div>';
+          });
+      }
+
+      function renderPersonPanel(d) {
+        const faraLinked = d.fara_linked;
+        const score = d.credibility_score;
+        const scorePct = Math.round((1 - (score || 0)) * 100);
+        let html = '';
+        html += '<div class="panel-section">';
+        html += faraLinked
+          ? '<span class="badge badge-red">FARA-linked</span> '
+          : '<span class="badge badge-gray">No FARA link found</span> ';
+        if (d.verified) html += '<span class="badge badge-blue">Verified account</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Account</div>';
+        html += row('Platform', d.platform || '—');
+        html += row('Followers', (d.follower_count || 0).toLocaleString());
+        html += row('First seen', fmtDate(d.first_seen));
+        html += row('Last seen', fmtDate(d.last_seen));
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Coordination suspicion</div>';
+        html += '<div>' + scorePct + '%</div>';
+        html += '<div class="score-bar"><div class="score-bar-fill" style="width:' + scorePct + '%"></div></div>';
+        html += '</div>';
+        if (d.funding && d.funding.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Documented payments</div>';
+          d.funding.forEach(function(f) {
+            html += '<div class="article-item">';
+            html += '<strong>' + f.org_name + '</strong>';
+            if (f.amount_usd) html += ' — $' + f.amount_usd.toLocaleString();
+            if (f.period) html += ' (' + f.period + ')';
+            html += '<div class="article-meta">' + (f.filing_source || '').toUpperCase();
+            if (f.evidence_url) html += ' · <a href="' + f.evidence_url + '" target="_blank">Source →</a>';
+            html += '</div></div>';
+          });
+          html += '</div>';
+        }
+        if (d.coordination_events && d.coordination_events.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Coordination events (' + d.coordination_events.length + ')</div>';
+          d.coordination_events.slice(0, 5).forEach(function(e) {
+            html += '<div class="article-item">';
+            html += '<span class="badge badge-orange">' + (e.trigger_type || '').replace('_', ' ') + '</span> ';
+            html += (e.account_count || 0) + ' accounts';
+            if (e.hashtags && e.hashtags.length) html += ' · ' + e.hashtags.slice(0,2).join(' ');
+            html += '<div class="article-meta">' + fmtDate(e.detected_at) + '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        if (d.ftc_violations && d.ftc_violations.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">FTC violation candidates</div>';
+          d.ftc_violations.forEach(function(v) {
+            html += '<div class="article-item">';
+            if (v.amount_usd) html += '$' + v.amount_usd.toLocaleString() + ' undisclosed · ';
+            html += '<a href="' + v.post_url + '" target="_blank">View post →</a>';
+            html += '<div class="article-meta">' + fmtDate(v.flagged_at) + '</div>';
+            html += '<div style="margin-top:6px">';
+            html += '<button class="action-btn primary" onclick="openFtcPackage(\'' + v.package_path + '\')">';
+            html += 'Review complaint package</button>';
+            html += '</div></div>';
+          });
+          html += '</div>';
+        }
+        if (d.recent_posts && d.recent_posts.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Recent posts</div>';
+          d.recent_posts.slice(0, 5).forEach(function(p) {
+            html += '<div class="article-item">';
+            html += '<div>' + (p.content_preview || '') + '</div>';
+            html += '<div class="article-meta">' + (p.platform || '') + ' · ' + fmtDate(p.timestamp);
+            if (!p.disclosed_sponsored) html += ' · <span style="color:#c92a2a">No disclosure</span>';
+            html += '</div></div>';
+          });
+          html += '</div>';
+        }
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      function fetchOrgDetail(orgId) {
+        fetch('/api/node/organization/' + encodeURIComponent(orgId))
+          .then(r => r.json())
+          .then(d => renderOrgPanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load node data.</div>';
+          });
+      }
+
+      function renderOrgPanel(d) {
+        let html = '';
+        html += '<div class="panel-section">';
+        if (d.fara_registration_id) html += '<span class="badge badge-red">FARA registered</span> ';
+        if (d.foreign_principal) html += '<span class="badge badge-orange">Principal: ' + d.foreign_principal + '</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Organization</div>';
+        html += row('EIN', d.ein || '—');
+        html += row('FARA ID', d.fara_registration_id || 'None');
+        html += row('Country', d.country || '—');
+        html += row('Type', d.org_type || '—');
+        html += '</div>';
+        if (d.irs990 && d.irs990.revenue) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">IRS 990 (most recent)</div>';
+          html += row('Revenue', '$' + d.irs990.revenue.toLocaleString());
+          html += row('Expenses', '$' + d.irs990.expenses.toLocaleString());
+          html += row('Tax year', d.irs990.tax_year || '—');
+          if (d.irs990.program_description) {
+            html += '<div style="margin-top:8px;font-size:12px;color:#555;font-style:italic">';
+            html += '"' + d.irs990.program_description.slice(0, 200) + '..."</div>';
+          }
+          html += '</div>';
+        }
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Funded persons (' + (d.connected_person_count || 0) + ')</div>';
+        html += row('Total tracked', '$' + (d.total_disbursements_tracked || 0).toLocaleString());
+        if (d.funded_persons && d.funded_persons.length > 0) {
+          d.funded_persons.slice(0, 8).forEach(function(p) {
+            html += '<div class="article-item">';
+            html += '<strong>@' + p.handle + '</strong> (' + (p.platform || '') + ')';
+            if (p.amount_usd) html += ' — $' + p.amount_usd.toLocaleString();
+            html += '<div class="article-meta">' + (p.follower_count || 0).toLocaleString() + ' followers</div>';
+            html += '</div>';
+          });
+          if (d.funded_persons.length > 8) {
+            html += '<div class="article-meta">+' + (d.funded_persons.length - 8) + ' more</div>';
+          }
+        }
+        html += '</div>';
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      function fetchVoiceDetail(handle) {
+        fetch('/api/node/voice/' + encodeURIComponent(handle))
+          .then(r => r.json())
+          .then(d => renderVoicePanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load node data.</div>';
+          });
+      }
+
+      function renderVoicePanel(d) {
+        let html = '';
+        const verified = d.verification_status === 'verified';
+        html += '<div class="panel-section">';
+        html += verified
+          ? '<span class="badge badge-green">Verified</span> '
+          : '<span class="badge badge-orange">Pending verification</span> ';
+        if (d.digest_include) html += '<span class="badge badge-blue">In digest</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Voice</div>';
+        html += row('Platform', d.platform || '—');
+        html += row('Language', d.language || '—');
+        html += row('Last active', fmtDate(d.last_active));
+        if (d.content_focus && d.content_focus.length) {
+          html += row('Focus', d.content_focus.join(', '));
+        }
+        html += '</div>';
+        const reachPct = Math.round((d.reach_score || 0) * 100);
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Reach score</div>';
+        html += '<div>' + reachPct + '%</div>';
+        html += '<div class="score-bar"><div class="score-bar-fill green" style="width:' + reachPct + '%"></div></div>';
+        html += '</div>';
+        if (d.recent_articles && d.recent_articles.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Recent articles</div>';
+          d.recent_articles.forEach(function(a) {
+            html += '<div class="article-item">';
+            html += '<a href="' + a.url + '" target="_blank">' + (a.title || 'Untitled') + '</a>';
+            html += '<div class="article-meta">' + (a.source_name || '') + ' · ' + fmtDate(a.published_at) + '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Actions</div>';
+        const digestLabel = d.digest_include ? 'Remove from digest' : 'Add to digest';
+        html += '<button class="action-btn primary" onclick="toggleDigest(\'' + d.handle + '\', this)">' + digestLabel + '</button>';
+        html += '<button class="action-btn" onclick="copyAmpPack(\'' + d.handle + '\')">Copy amp pack</button>';
+        html += '</div>';
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      function fetchOtherDetail(nodeId) {
+        fetch('/api/node/other/' + encodeURIComponent(nodeId))
+          .then(r => r.json())
+          .then(d => renderOtherPanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load node data.</div>';
+          });
+      }
+
+      function renderOtherPanel(d) {
+        let html = '';
+        const typeColor = d.source_type === 'amplify' ? 'badge-green' : 'badge-gray';
+        html += '<div class="panel-section">';
+        html += '<span class="badge ' + typeColor + '">' + (d.source_type === 'amplify' ? 'Amplify source' : 'Monitor source') + '</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div style="font-weight:500;margin-bottom:8px;line-height:1.4">' + (d.title || 'Untitled') + '</div>';
+        html += row('Source', d.source_name || '—');
+        html += row('Published', fmtDate(d.published_at));
+        if (d.author_handle) html += row('Author', '@' + d.author_handle);
+        html += '</div>';
+        if (d.url) {
+          html += '<a href="' + d.url + '" target="_blank" class="action-btn primary">Read article →</a>';
+        }
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      // ---- Action handlers ----
+      function toggleDigest(handle, btn) {
+        fetch('/api/action/digest-include/' + encodeURIComponent(handle), { method: 'POST' })
+          .then(r => r.json())
+          .then(function(d) {
+            btn.textContent = d.digest_include ? 'Remove from digest' : 'Add to digest';
+          });
+      }
+
+      function openFtcPackage(packagePath) {
+        fetch('/api/action/ftc-open/' + encodeURIComponent(packagePath))
+          .then(r => r.json())
+          .then(function(d) {
+            const win = window.open('', '_blank');
+            win.document.write('<pre style="font-family:monospace;padding:20px;white-space:pre-wrap">' + d.content + '</pre>');
+            win.document.write('<p><a href="' + d.submit_url + '" target="_blank">Submit to FTC →</a></p>');
+          });
+      }
+
+      function copyAmpPack(handle) {
+        fetch('/api/node/voice/' + encodeURIComponent(handle))
+          .then(r => r.json())
+          .then(function(d) {
+            const articles = (d.recent_articles || []).slice(0, 3)
+              .map(function(a) { return '- ' + a.title + '\n ' + a.url; })
+              .join('\n');
+            const pack = '@' + handle + ' (' + (d.platform || '') + ') — reach score ' + Math.round((d.reach_score||0)*100) + '%\n\nRecent:\n' + articles;
+            navigator.clipboard.writeText(pack);
+            alert('Amplification pack copied to clipboard');
+          });
+      }
+
+      // ---- Utilities ----
+      function row(label, value) {
+        return '<div class="panel-row"><span class="panel-row-label">' + label + '</span><span class="panel-row-value">' + (value || '—') + '</span></div>';
+      }
+
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (isNaN(d)) return iso;
+        const now = new Date();
+        const diff = Math.floor((now - d) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+        if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
+        return d.toLocaleDateString();
+      }
 
     } catch (err) {
       document.getElementById('loading').innerHTML = '<span style="color:#c0392b">Error: ' + err.message + '</span>';
