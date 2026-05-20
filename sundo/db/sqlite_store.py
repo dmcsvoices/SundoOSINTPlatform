@@ -52,7 +52,7 @@ def apply_migrations(conn: sqlite3.Connection) -> None:
 
 def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
     """Add a column to a table if it does not already exist."""
-    cur = conn.execute("PRAGMA table_info(?)", (table,))
+    cur = conn.execute(f"PRAGMA table_info({table})")
     existing = {row[1] for row in cur.fetchall()}
     if column not in existing:
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
