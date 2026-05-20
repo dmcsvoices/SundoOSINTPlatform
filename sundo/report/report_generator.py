@@ -97,6 +97,62 @@ def _fetch_new_fara() -> list[dict[str, Any]]:
     )
 
 
+def _fetch_digest_articles() -> dict[str, Any]:
+    """Fetch digest payload directly from the database."""
+    try:
+        conn = sqlite3.connect(str(SQLITE_PATH))
+        conn.row_factory = sqlite3.Row
+        from sundo.amplify.digest import build_digest
+        payload = build_digest(conn)
+        conn.close()
+        return payload
+    except Exception as exc:
+        logger.warning("Could not build digest for report: %s", exc)
+        return {
+            "articles": [],
+            "article_count": 0,
+            "monitor_excluded_count": 0,
+            "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        }
+
+
+def render_digest_section(digest_payload: dict[str, Any], fmt: str = "md") -> str:
+    """Render a digest subsection for reports.
+
+    Shows amplify article count, monitor exclusion count, and article list.
+    """
+    articles = digest_payload.get("articles", [])
+    excluded = digest_payload.get("monitor_excluded_count", 0)
+    lines: list[str] = []
+
+    header = f"Palestinian Voice Digest ({len(articles)} articles, {excluded} monitor excluded)"
+    if fmt == "md":
+        lines.append(f"## {header}")
+    else:
+        lines.append(f"== {header} ==")
+    lines.append("")
+
+    if not articles:
+        lines.append("_No amplify articles in the lookback window._")
+    else:
+        for a in articles:
+            from sundo.amplify.digest import _feed_url_to_name
+            source_name = _feed_url_to_name(a.get("feed_url", ""))
+            title = a.get("title", "Untitled")
+            link = a.get("link", "")
+            published = a.get("published_at", "n/a")
+            if fmt == "md":
+                lines.append(f"- **{title}** ({source_name}) — {published}")
+                if link:
+                    lines.append(f"  {link}")
+            else:
+                lines.append(f"* {title} ({source_name}) — {published}")
+                if link:
+                    lines.append(f"  {link}")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _fetch_ftc_candidates() -> list[dict[str, Any]]:
     return _query_sqlite(
         "SELECT * FROM ftc_violations WHERE status = 'candidate' ORDER BY amount DESC"

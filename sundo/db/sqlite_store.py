@@ -31,6 +31,7 @@ def init_db() -> None:
         _create_rss_articles(conn)
         _create_coordination_events(conn)
         _create_ftc_violations(conn)
+        apply_migrations(conn)
         conn.commit()
         logger.info("SQLite schema initialised at %s", SQLITE_PATH)
     except Exception:
@@ -39,6 +40,23 @@ def init_db() -> None:
         raise
     finally:
         conn.close()
+
+
+def apply_migrations(conn: sqlite3.Connection) -> None:
+    """Safely add missing columns to existing tables. Idempotent."""
+    _add_column_if_missing(conn, "rss_articles", "digest_flagged", "INTEGER DEFAULT 0")
+    _add_column_if_missing(conn, "rss_articles", "reviewed", "INTEGER DEFAULT 0")
+    _add_column_if_missing(conn, "rss_articles", "narrative_tag", "TEXT")
+    _add_column_if_missing(conn, "rss_articles", "linked_event_id", "TEXT")
+
+
+def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    """Add a column to a table if it does not already exist."""
+    cur = conn.execute("PRAGMA table_info(?)", (table,))
+    existing = {row[1] for row in cur.fetchall()}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        logger.info("Migration applied: added %s to %s", column, table)
 
 
 # ---------------------------------------------------------------------------
