@@ -144,6 +144,34 @@ def _article_id(link: str) -> str:
     return f"article_{domain}__{h}"
 
 
+def _short_id(name: str) -> str:
+    """Generate a short stable ID from a source name (must match cytoscape_export)."""
+    name_lower = name.lower()
+    if "middle east eye" in name_lower:
+        return "mee"
+    if "al-quds" in name_lower or "alquds" in name_lower:
+        return "alquds"
+    if "forward" in name_lower:
+        return "forward"
+    if "intercept" in name_lower:
+        return "intercept"
+    if "jta" in name_lower or "jewish telegraphic" in name_lower:
+        return "jta"
+    if "972" in name_lower:
+        return "972mag"
+    if "mondoweiss" in name_lower:
+        return "mondoweiss"
+    if "electronic intifada" in name_lower or "intifada" in name_lower:
+        return "ei"
+    if "wafa" in name_lower:
+        return "wafa"
+    if "haaretz" in name_lower:
+        return "haaretz"
+    if "drop site" in name_lower:
+        return "dropsite"
+    return "".join(w[0] for w in name.split() if w).lower()[:8]
+
+
 # ---------------------------------------------------------------------------
 # Auth guards
 # ---------------------------------------------------------------------------
@@ -176,6 +204,135 @@ def logout() -> str:
     """Clear session and redirect to login."""
     session.clear()
     return redirect(url_for("login"))
+
+
+# ---------------------------------------------------------------------------
+# Stats endpoint for legend counts
+# ---------------------------------------------------------------------------
+
+@app.route("/api/stats")
+def api_stats():
+    """Return article and node counts for the legend."""
+    try:
+        # Count articles in SQLite
+        article_count = 0
+        rows = _sqlite_run("SELECT COUNT(*) as count FROM rss_articles")
+        if rows:
+            article_count = rows[0].get("count", 0) or 0
+
+        # Count node types from graph.json (fast, no DB needed)
+        graph = _load_graph()
+        node_counts = {}
+        for n in graph.get("nodes", []):
+            t = n.get("data", {}).get("type", "Unknown")
+            node_counts[t] = node_counts.get(t, 0) + 1
+
+        return jsonify({
+            "article_count": article_count,
+            "node_counts": node_counts,
+            "total_nodes": len(graph.get("nodes", [])),
+            "total_edges": len(graph.get("edges", [])),
+        }), 200
+    except Exception as exc:
+        logger.error("Error in /api/stats: %s", exc)
+        return jsonify({"error": "Stats unavailable"}), 503
+
+
+# ---------------------------------------------------------------------------
+# Search endpoint
+# ---------------------------------------------------------------------------
+
+@app.route("/api/search")
+def api_search():
+    """Search across SQLite tables for authors, articles, and sources.
+
+    Query params:
+      q     — search term (required)
+      scope — filter: all | authors | sources | articles (default: all)
+    """
+    query = request.args.get("q", "").strip()
+    scope = request.args.get("scope", "all").strip().lower()
+
+    if not query or len(query) < 2:
+        return jsonify({"results": [], "query": query, "scope": scope}), 200
+
+    results: list[dict] = []
+    search_pattern = f"%{query}%"
+
+    # --- Authors ---
+    if scope in ("all", "authors"):
+        rows = _sqlite_run(
+            """
+            SELECT id, display_name, handle, byline_variants, article_count
+            FROM authors
+            WHERE display_name LIKE ? OR handle LIKE ? OR byline_variants LIKE ?
+            ORDER BY article_count DESC
+            LIMIT 20
+            """,
+            (search_pattern, search_pattern, search_pattern),
+        )
+        if rows:
+            for r in rows:
+                author_id = r.get("id", "")
+                display_name = r.get("display_name") or r.get("handle") or author_id
+                results.append({
+                    "type": "Author",
+                    "id": author_id,
+                    "title": display_name,
+                    "subtitle": f"@{r.get('handle', '')}" if r.get("handle") else "Author",
+                    "url": None,
+                })
+
+    # --- Articles ---
+    if scope in ("all", "articles"):
+        rows = _sqlite_run(
+            """
+            SELECT title, link, feed_url, published_at, authors, tags
+            FROM rss_articles
+            WHERE title LIKE ? OR authors LIKE ? OR tags LIKE ?
+            ORDER BY published_at DESC
+            LIMIT 20
+            """,
+            (search_pattern, search_pattern, search_pattern),
+        )
+        if rows:
+            for r in rows:
+                article_id = _article_id(r.get("link", ""))
+                source_name = _feed_url_to_name(r.get("feed_url", ""))
+                pub_date = r.get("published_at", "") or ""
+                results.append({
+                    "type": "Article",
+                    "id": article_id,
+                    "title": r.get("title", "Untitled"),
+                    "subtitle": f"{source_name} · {pub_date[:10]}",
+                    "url": r.get("link"),
+                })
+
+    # --- Sources ---
+    if scope in ("all", "sources"):
+        query_lower = query.lower()
+        for name, url in AMPLIFY_FEEDS + MONITOR_FEEDS:
+            if query_lower in name.lower() or query_lower in url.lower():
+                src_id = _short_id(name)
+                source_type = "amplify" if (name, url) in AMPLIFY_FEEDS else "monitor"
+                results.append({
+                    "type": "Source",
+                    "id": src_id,
+                    "title": name,
+                    "subtitle": f"{source_type.title()} feed",
+                    "url": url,
+                })
+
+    # De-duplicate by id (in case of overlap)
+    seen_ids: set[str] = set()
+    deduped: list[dict] = []
+    for r in results:
+        key = f"{r['type']}:{r['id']}"
+        if key not in seen_ids:
+            seen_ids.add(key)
+            deduped.append(r)
+
+    return jsonify({"results": deduped, "query": query, "scope": scope}), 200
 
 
 # ---------------------------------------------------------------------------
@@ -518,6 +675,157 @@ def api_node_voice(handle: str):
         logger.error("Error in /api/node/voice/%s: %s", handle, exc)
         if _errors_file_handler:
             logging.getLogger().error("Error in /api/node/voice/%s: %s", handle, exc)
+        return jsonify({"error": "Database unavailable"}), 503
+
+
+@app.route("/api/node/author/<author_id>")
+def api_node_author(author_id: str):
+    """Return full Author node detail."""
+    try:
+        # Try Neo4j first, fallback to SQLite
+        result = _neo4j_run(
+            "MATCH (a:Author {id: $id}) RETURN a",
+            {"id": author_id},
+        )
+        
+        if result:
+            record = result[0]
+            if record:
+                node = record["a"]
+                author = {
+                    "type": "Author",
+                    "id": author_id,
+                    "handle": node.get("handle", author_id),
+                    "display_name": node.get("display_name", author_id),
+                    "primary_language": node.get("primary_language", "en"),
+                    "article_count": node.get("article_count", 0) or 0,
+                    "first_seen": node.get("first_seen"),
+                    "last_seen": node.get("last_seen"),
+                    "linked_voice_id": node.get("linked_voice_id"),
+                    "verification_status": node.get("verification_status", "unknown"),
+                    "byline_variants": node.get("byline_variants", []),
+                }
+        else:
+            # Fallback to SQLite
+            rows = _sqlite_run(
+                "SELECT id, display_name, handle, article_count, first_seen, last_seen FROM authors WHERE id = ?",
+                (author_id,),
+            )
+            if not rows:
+                return jsonify({"error": "Author not found"}), 404
+            
+            row = rows[0]
+            author = {
+                "type": "Author",
+                "id": author_id,
+                "handle": row.get("handle", author_id),
+                "display_name": row.get("display_name", author_id),
+                "primary_language": "en",
+                "article_count": row.get("article_count", 0) or 0,
+                "first_seen": row.get("first_seen"),
+                "last_seen": row.get("last_seen"),
+                "linked_voice_id": None,
+                "verification_status": "pending",
+                "byline_variants": [],
+            }
+
+        # Neo4j: articles written (with SQLite fallback)
+        articles = []
+        result = _neo4j_run(
+            """
+            MATCH (a:Author {id: $id})-[r:WROTE]->(art:Article)
+            RETURN art.id AS id, art.title AS title,
+                   art.link AS url, r.published_at AS published_at,
+                   r.source_name AS source_name
+            ORDER BY r.published_at DESC
+            LIMIT 10
+            """,
+            {"id": author_id},
+        )
+        if result:
+            articles = [dict(a) for a in result]
+        else:
+            # Fallback to SQLite
+            rows = _sqlite_run(
+                """
+                SELECT r.title, r.link, r.feed_url, r.published_at
+                FROM rss_articles r
+                JOIN authors a ON r.author_id = a.id
+                WHERE a.id = ?
+                ORDER BY r.published_at DESC
+                LIMIT 10
+                """,
+                (author_id,),
+            )
+            if rows:
+                for r in rows:
+                    articles.append({
+                        "id": _article_id(r.get("link", "")),
+                        "title": r.get("title", ""),
+                        "url": r.get("link", ""),
+                        "published_at": r.get("published_at"),
+                        "source_name": _feed_url_to_name(r.get("feed_url", "")),
+                    })
+        author["articles"] = articles
+
+        # Neo4j: publications written for (with SQLite fallback)
+        pubs = []
+        result = _neo4j_run(
+            """
+            MATCH (a:Author {id: $id})-[r:WRITES_FOR]->(o:Organization)
+            RETURN o.name AS name, o.id AS org_id,
+                   r.article_count AS article_count
+            ORDER BY r.article_count DESC
+            """,
+            {"id": author_id},
+        )
+        if result:
+            pubs = [dict(p) for p in result]
+        else:
+            # Fallback to SQLite - get distinct sources this author writes for
+            rows = _sqlite_run(
+                """
+                SELECT DISTINCT r.feed_url, COUNT(*) as article_count
+                FROM rss_articles r
+                JOIN authors a ON r.author_id = a.id
+                WHERE a.id = ?
+                GROUP BY r.feed_url
+                """,
+                (author_id,),
+            )
+            if rows:
+                for r in rows:
+                    feed_url = r.get("feed_url", "")
+                    norm = feed_url.split("?")[0].rstrip("/") if feed_url else ""
+                    # Map feed_url to source name
+                    source_name = _feed_url_to_name(feed_url)
+                    pubs.append({
+                        "name": source_name,
+                        "org_id": norm,
+                        "article_count": r.get("article_count", 0),
+                    })
+        author["publications"] = pubs
+
+        # Neo4j: linked PalestinianVoice if matched (no SQLite fallback for this)
+        voice = _neo4j_run(
+            """
+            MATCH (a:Author {id: $id})-[:IS_VOICE]->(v:PalestinianVoice)
+            RETURN v.handle AS handle, v.reach_score AS reach_score,
+                   v.verification_status AS verification_status
+            """,
+            {"id": author_id},
+        )
+        if voice:
+            author["linked_voice"] = dict(voice[0])
+        else:
+            author["linked_voice"] = None
+
+        return jsonify(author), 200
+
+    except Exception as exc:
+        logger.error("Error in /api/node/author/%s: %s", author_id, exc)
+        if _errors_file_handler:
+            logging.getLogger().error("Error in /api/node/author/%s: %s", author_id, exc)
         return jsonify({"error": "Database unavailable"}), 503
 
 

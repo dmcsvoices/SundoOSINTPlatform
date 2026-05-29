@@ -29,6 +29,7 @@ def init_db() -> None:
         _create_irs990_grants(conn)
         _create_social_posts(conn)
         _create_rss_articles(conn)
+        _create_authors(conn)
         _create_coordination_events(conn)
         _create_ftc_violations(conn)
         apply_migrations(conn)
@@ -48,6 +49,10 @@ def apply_migrations(conn: sqlite3.Connection) -> None:
     _add_column_if_missing(conn, "rss_articles", "reviewed", "INTEGER DEFAULT 0")
     _add_column_if_missing(conn, "rss_articles", "narrative_tag", "TEXT")
     _add_column_if_missing(conn, "rss_articles", "linked_event_id", "TEXT")
+    _add_column_if_missing(conn, "rss_articles", "author_id", "TEXT")
+    _add_column_if_missing(conn, "rss_articles", "author_display_name", "TEXT")
+    _create_authors(conn)
+    _add_index_if_missing(conn, "rss_articles", "idx_rss_author_id", "author_id")
 
 
 def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
@@ -57,6 +62,15 @@ def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, de
     if column not in existing:
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
         logger.info("Migration applied: added %s to %s", column, table)
+
+
+def _add_index_if_missing(conn: sqlite3.Connection, table: str, index_name: str, column: str) -> None:
+    """Add an index if it does not already exist."""
+    cur = conn.execute(f"PRAGMA index_list({table})")
+    existing = {row[1] for row in cur.fetchall()}
+    if index_name not in existing:
+        conn.execute(f"CREATE INDEX {index_name} ON {table}({column})")
+        logger.info("Migration applied: added index %s on %s", index_name, table)
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +217,85 @@ def _create_rss_articles(conn: sqlite3.Connection) -> None:
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_rss_published ON rss_articles(published_at)"
     )
+
+
+def _create_authors(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS authors (
+            id TEXT PRIMARY KEY,
+            display_name TEXT,
+            handle TEXT,
+            byline_variants TEXT,
+            primary_language TEXT,
+            article_count INTEGER DEFAULT 0,
+            first_seen TEXT,
+            last_seen TEXT,
+            linked_voice_id TEXT,
+            verification_status TEXT DEFAULT 'unknown',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_authors_handle ON authors(handle)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_authors_linked_voice ON authors(linked_voice_id)"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Author upsert helper
+# ---------------------------------------------------------------------------
+
+def upsert_author_sqlite(conn: sqlite3.Connection, author_data: dict) -> None:
+    """
+    Insert or update an author record in SQLite.
+    On conflict (same id), appends new byline variant if not already present
+    and updates last_seen and article_count.
+    """
+    import json
+    from datetime import datetime
+
+    now = datetime.utcnow().isoformat()
+    author_id = author_data['id']
+
+    # Fetch existing to merge byline_variants
+    existing = conn.execute(
+        "SELECT byline_variants FROM authors WHERE id = ?", (author_id,)
+    ).fetchone()
+
+    if existing:
+        variants = json.loads(existing[0] or '[]')
+        new_variant = author_data['display_name']
+        if new_variant not in variants:
+            variants.append(new_variant)
+        conn.execute("""
+            UPDATE authors
+            SET byline_variants = ?,
+                last_seen = ?,
+                article_count = article_count + 1,
+                updated_at = ?
+            WHERE id = ?
+        """, (json.dumps(variants), now, now, author_id))
+    else:
+        conn.execute("""
+            INSERT INTO authors
+            (id, display_name, handle, byline_variants,
+             primary_language, article_count, first_seen, last_seen,
+             verification_status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, 'unknown', ?, ?)
+        """, (
+            author_id,
+            author_data['display_name'],
+            author_data['handle'],
+            json.dumps(author_data['byline_variants']),
+            author_data.get('primary_language', 'en'),
+            now, now, now, now
+        ))
+    conn.commit()
 
 
 def _create_coordination_events(conn: sqlite3.Connection) -> None:

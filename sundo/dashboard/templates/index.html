@@ -38,6 +38,95 @@
       0%, 100% { opacity: 0.6; }
       50% { opacity: 1; }
     }
+    #search-container {
+      position: relative;
+      margin: 8px 0;
+      padding: 8px 0;
+      border-top: 1px solid #d4c5a9;
+    }
+    #search-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #d4c5a9;
+      border-radius: 8px;
+      font-size: 12px;
+      background: #faf5ed;
+      color: #3d3229;
+      box-sizing: border-box;
+    }
+    #search-input:focus {
+      outline: none;
+      border-color: #4a7c59;
+    }
+    #search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(245,240,230,0.98);
+      border: 1px solid #d4c5a9;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(61,50,41,0.12);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      margin-top: 4px;
+    }
+    #search-dropdown.active {
+      display: block;
+    }
+    .search-result {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(212,197,169,0.4);
+      font-size: 12px;
+    }
+    .search-result:last-child {
+      border-bottom: none;
+    }
+    .search-result:hover,
+    .search-result.selected {
+      background: rgba(74,124,89,0.08);
+    }
+    .search-result-title {
+      font-weight: 500;
+      color: #3d3229;
+      line-height: 1.3;
+    }
+    .search-result-subtitle {
+      font-size: 11px;
+      color: #8c7b6b;
+      margin-top: 2px;
+    }
+    .search-result-type {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .search-type-article { background: #e8e0d4; color: #6b5e4f; }
+    .search-type-author { background: #e0f0e0; color: #3d7c3d; }
+    .search-type-source { background: #e0ecf7; color: #2e6b9e; }
+    .search-no-results {
+      padding: 12px;
+      font-size: 12px;
+      color: #8c7b6b;
+      text-align: center;
+    }
+    @media (prefers-color-scheme: dark) {
+      #search-input { background: #2a3f2a; border-color: #4a5c3d; color: #e8dfd0; }
+      #search-dropdown { background: rgba(40,55,40,0.98); border-color: #3d5c3d; }
+      .search-result { border-bottom-color: #2a3f2a; }
+      .search-result:hover,
+      .search-result.selected { background: rgba(74,124,89,0.15); }
+      .search-result-title { color: #e8dfd0; }
+      .search-result-subtitle { color: #a09080; }
+    }
     /* Side panel */
     #detail-panel {
       position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
@@ -84,7 +173,9 @@
     .action-btn.primary { background: #4a7c59; color: #fff; border-color: #4a7c59; }
     .action-btn.primary:hover { background: #5a9c6b; border-color: #5a9c6b; }
     .loading-state { color: #8c7b6b; font-size: 13px; padding: 20px 0; text-align: center; }
+    .count-badge { font-size: 11px; color: #8c7b6b; margin-left: 4px; font-weight: 500; }
     @media (prefers-color-scheme: dark) {
+      .count-badge { color: #a09080; }
       html, body { background: #1a2f1a; }
       #info { background: rgba(40,55,40,0.96); border-color: #3d5c3d; color: #e8dfd0; }
       #info h1 { color: #e8dfd0; }
@@ -110,11 +201,19 @@
     <div style="text-align: right; margin-bottom: 6px;">
       <a href="/logout" style="font-size: 12px; color: #8c7b6b; text-decoration: none;">🚪 Log out</a>
     </div>
+    <div id="search-container">
+      <input type="text" id="search-input" placeholder="Search nodes…" autocomplete="off">
+      <div id="search-dropdown"></div>
+    </div>
     <div id="hover">Hover a node for details.</div>
     <div id="filter-controls" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9; position: relative; z-index: 100;">
       <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px;">
         <input type="checkbox" id="show-articles" style="margin-right: 6px; cursor: pointer;" checked>
         Show Articles
+      </label>
+      <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px; margin-top: 4px;">
+        <input type="checkbox" id="toggle-authors" style="margin-right: 6px; cursor: pointer;" checked>
+        Show Authors
       </label>
     </div>
     <div id="layout-toggle" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9;">
@@ -127,11 +226,12 @@
       <label><input type="radio" name="layout" value="random"> Random</label>
     </div>
     <div id="legend">
-      <div><span class="dot" style="background:#c94c4c"></span>Person (FARA-linked)</div>
-      <div><span class="dot" style="background:#d4a017"></span>Person (unlinked)</div>
-      <div><span class="dot" style="background:#3d8c9e"></span>Organization</div>
-      <div><span class="dot" style="background:#7cb342"></span>PalestinianVoice</div>
-      <div><span class="dot" style="background:#a89b8c"></span>Article</div>
+      <div><span class="dot" style="background:#c94c4c"></span>Person (FARA-linked) <span id="count-person-fara" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#d4a017"></span>Person (unlinked) <span id="count-person" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#3d8c9e"></span>Organization <span id="count-org" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#7cb342"></span>PalestinianVoice <span id="count-voice" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#a89b8c"></span>Article <span id="count-article" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#0ca678"></span>Author <span id="count-author" class="count-badge"></span></div>
     </div>
   </div>
   <div id="loading">Loading graph...</div>
@@ -162,6 +262,7 @@
         if (t === 'Person') return '#d4a017';
         if (t === 'Organization') return '#3d8c9e';
         if (t === 'PalestinianVoice') return '#7cb342';
+        if (t === 'Author') return '#0ca678';
         return '#a89b8c';
       }
 
@@ -218,6 +319,40 @@
             'color': '#8c7b6b',
             'text-background-color': '#faf8f3',
             'text-background-opacity': 0.8
+          }},
+          { selector: "node[type = 'Author']", style: {
+            'background-color': '#0ca678',
+            'label': 'data(label)',
+            'width': 'data(size)',
+            'height': 'data(size)',
+            'font-size': '10px',
+            'text-valign': 'bottom',
+            'text-margin-y': '4px',
+            'color': '#333',
+            'text-outline-width': 0,
+          }},
+          { selector: "edge[relationship = 'WROTE']", style: {
+            'width': 1,
+            'line-color': '#0ca678',
+            'line-style': 'dashed',
+            'target-arrow-color': '#0ca678',
+            'target-arrow-shape': 'triangle',
+            'opacity': 0.5,
+          }},
+          { selector: "edge[relationship = 'WRITES_FOR']", style: {
+            'width': 2,
+            'line-color': '#0ca678',
+            'target-arrow-color': '#0ca678',
+            'target-arrow-shape': 'triangle',
+            'opacity': 0.7,
+          }},
+          { selector: "edge[relationship = 'IS_VOICE']", style: {
+            'width': 2,
+            'line-color': '#7048e8',
+            'target-arrow-color': '#7048e8',
+            'target-arrow-shape': 'triangle',
+            'line-style': 'dotted',
+            'opacity': 0.8,
           }}
         ],
         layout: {
@@ -230,7 +365,7 @@
           concentric: function(n) {
             const type = n.data('type');
             if (type === 'Source') return 10;
-            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
+            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization' || type === 'Author') return 5;
             return 1;
           }
         }
@@ -238,6 +373,34 @@
       console.log('Sundo: cytoscape initialized with', cy.nodes().length, 'total nodes');
       console.log('Sundo: article-class nodes:', cy.nodes('.article').length);
       console.log('Sundo: article-edge edges:', cy.edges('.article-edge').length);
+
+      // Load legend counts from API
+      fetch('/api/stats')
+        .then(r => r.json())
+        .then(function(stats) {
+          if (stats.node_counts) {
+            const nc = stats.node_counts;
+            // Person (FARA-linked) — we need to count from graph data since API doesn't split by fara flag
+            let personFara = 0, personUnlinked = 0;
+            graph.nodes.forEach(function(n) {
+              if (n.data.type === 'Person') {
+                if (n.data.fara_linked) personFara++;
+                else personUnlinked++;
+              }
+            });
+            document.getElementById('count-person-fara').textContent = '(' + personFara + ')';
+            document.getElementById('count-person').textContent = '(' + personUnlinked + ')';
+            document.getElementById('count-org').textContent = '(' + (nc['Organization'] || 0) + ')';
+            document.getElementById('count-voice').textContent = '(' + (nc['PalestinianVoice'] || 0) + ')';
+            document.getElementById('count-author').textContent = '(' + (nc['Author'] || 0) + ')';
+          }
+          if (stats.article_count !== undefined) {
+            document.getElementById('count-article').textContent = '(' + stats.article_count + ')';
+          }
+        })
+        .catch(function(err) {
+          console.log('Sundo: stats fetch failed:', err);
+        });
 
       // Safety: force-hide loading after 3s regardless
       setTimeout(function() {
@@ -274,7 +437,7 @@
           layoutOptions.concentric = function(n) {
             const type = n.data('type');
             if (type === 'Source') return 10;
-            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization') return 5;
+            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization' || type === 'Author') return 5;
             return 1;
           };
         }
@@ -309,6 +472,24 @@
         const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'concentric';
         runLayout(selectedLayout);
       });
+
+      document.getElementById('toggle-authors').addEventListener('change', function(e) {
+        const show = e.target.checked;
+        toggleAuthorNodes(show);
+      });
+
+      function toggleAuthorNodes(show) {
+        const authorNodes = cy.nodes("[type = 'Author']");
+        if (show) {
+          authorNodes.show();
+          authorNodes.connectedEdges().show();
+        } else {
+          authorNodes.hide();
+          authorNodes.connectedEdges().hide();
+        }
+        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'concentric';
+        runLayout(selectedLayout);
+      }
 
       // Sync initial checkbox state on load
       (function syncInitialState() {
@@ -348,6 +529,9 @@
         } else if (type === 'PalestinianVoice') {
           title.textContent = '@' + id;
           fetchVoiceDetail(id);
+        } else if (type === 'Author') {
+          title.textContent = nodeData.label || nodeData.id;
+          fetchAuthorDetail(id);
         } else if (type === 'Source') {
           title.textContent = nodeData.label || id;
           fetchSourceDetail(id, nodeData.feed_url || '');
@@ -359,6 +543,95 @@
 
       function closePanel() {
         document.getElementById('detail-panel').classList.remove('panel-open');
+      }
+
+      function fetchAuthorDetail(authorId) {
+        fetch('/api/node/author/' + encodeURIComponent(authorId))
+          .then(r => r.json())
+          .then(d => renderAuthorPanel(d))
+          .catch(() => {
+            document.getElementById('panel-body').innerHTML =
+              '<div class="loading-state">Could not load author data.</div>';
+          });
+      }
+
+      function renderAuthorPanel(d) {
+        let html = '';
+        // Status badges
+        html += '<div class="panel-section">';
+        html += '<span class="badge badge-green">Author</span> ';
+        if (d.primary_language === 'ar') {
+          html += '<span class="badge badge-blue">Arabic</span> ';
+        }
+        if (d.linked_voice) {
+          html += '<span class="badge" style="background:#ede9fe;color:#5f3dc4">' +
+            'Voice matched</span>';
+        }
+        html += '</div>';
+
+        // Core stats
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Author</div>';
+        html += row('Handle', d.handle || '—');
+        html += row('Language', d.primary_language || 'en');
+        html += row('Articles tracked', (d.article_count || 0).toString());
+        html += row('First seen', fmtDate(d.first_seen));
+        html += row('Last seen', fmtDate(d.last_seen));
+        html += '</div>';
+
+        // Byline variants
+        if (d.byline_variants && d.byline_variants.length > 1) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Byline variants</div>';
+          const variants = typeof d.byline_variants === 'string'
+            ? JSON.parse(d.byline_variants)
+            : d.byline_variants;
+          variants.forEach(function(v) {
+            html += '<div style="padding:2px 0;font-size:12px">' + v + '</div>';
+          });
+          html += '</div>';
+        }
+
+        // Publications
+        if (d.publications && d.publications.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Writes for</div>';
+          d.publications.forEach(function(p) {
+            html += '<div class="article-item">';
+            html += '<strong>' + p.name + '</strong>';
+            html += '<div class="article-meta">' + p.article_count + ' articles</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+
+        // Linked Palestinian Voice
+        if (d.linked_voice) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Linked voice</div>';
+          html += '<div class="article-item">';
+          html += '@' + d.linked_voice.handle;
+          const reachPct = Math.round((d.linked_voice.reach_score || 0) * 100);
+          html += '<div class="article-meta">Reach score: ' + reachPct + '% · ';
+          html += d.linked_voice.verification_status + '</div>';
+          html += '</div></div>';
+        }
+
+        // Recent articles
+        if (d.articles && d.articles.length > 0) {
+          html += '<div class="panel-section">';
+          html += '<div class="panel-section-title">Recent articles</div>';
+          d.articles.forEach(function(a) {
+            html += '<div class="article-item">';
+            html += '<a href="' + a.url + '" target="_blank">' + (a.title || 'Untitled') + '</a>';
+            html += '<div class="article-meta">' + (a.source_name || '') + ' · ';
+            html += fmtDate(a.published_at) + '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+
+        document.getElementById('panel-body').innerHTML = html;
       }
 
       function fetchPersonDetail(handle) {
@@ -671,6 +944,159 @@
         if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
         return d.toLocaleDateString();
       }
+
+      // ---- Search ----
+      (function initSearch() {
+        const searchInput = document.getElementById('search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+        let searchTimeout = null;
+        let selectedIndex = -1;
+        let currentResults = [];
+
+        function clearDropdown() {
+          searchDropdown.innerHTML = '';
+          searchDropdown.classList.remove('active');
+          selectedIndex = -1;
+          currentResults = [];
+        }
+
+        function renderResults(results) {
+          currentResults = results;
+          selectedIndex = -1;
+          if (results.length === 0) {
+            searchDropdown.innerHTML = '<div class="search-no-results">No results found</div>';
+            searchDropdown.classList.add('active');
+            return;
+          }
+          let html = '';
+          results.forEach(function(r, i) {
+            const typeClass = 'search-type-' + r.type.toLowerCase();
+            html += '<div class="search-result" data-index="' + i + '" data-type="' + r.type + '" data-id="' + r.id + '">';
+            html += '<span class="search-result-type ' + typeClass + '">' + r.type + '</span>';
+            html += '<span class="search-result-title">' + escapeHtml(r.title) + '</span>';
+            if (r.subtitle) {
+              html += '<div class="search-result-subtitle">' + escapeHtml(r.subtitle) + '</div>';
+            }
+            html += '</div>';
+          });
+          searchDropdown.innerHTML = html;
+          searchDropdown.classList.add('active');
+
+          // Click handlers
+          searchDropdown.querySelectorAll('.search-result').forEach(function(el) {
+            el.addEventListener('click', function() {
+              const type = el.getAttribute('data-type');
+              const id = el.getAttribute('data-id');
+              navigateToResult(type, id);
+              clearDropdown();
+              searchInput.value = '';
+            });
+          });
+        }
+
+        function escapeHtml(text) {
+          if (!text) return '';
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        function navigateToResult(type, id) {
+          // Find the node in cytoscape
+          const node = cy.getElementById(id);
+          if (node && node.length > 0) {
+            cy.fit(node, 60);
+            // Flash the node
+            node.animate({ style: { 'border-width': 6, 'border-color': '#f4a261' } }, { duration: 300 });
+            setTimeout(function() {
+              node.animate({ style: { 'border-width': 2, 'border-color': '#6b5e4f' } }, { duration: 300 });
+            }, 600);
+            openPanel(node.data());
+          } else {
+            console.warn('Sundo search: node not found in graph:', id);
+            // For articles, try to open detail panel via API anyway
+            if (type === 'Article' || type === 'Other') {
+              fetchOtherDetail(id);
+            } else if (type === 'Author') {
+              fetchAuthorDetail(id);
+            } else if (type === 'Source') {
+              fetchSourceDetail(id, '');
+            }
+          }
+        }
+
+        function updateSelection() {
+          const items = searchDropdown.querySelectorAll('.search-result');
+          items.forEach(function(el, i) {
+            if (i === selectedIndex) {
+              el.classList.add('selected');
+              el.scrollIntoView({ block: 'nearest' });
+            } else {
+              el.classList.remove('selected');
+            }
+          });
+        }
+
+        function doSearch(query) {
+          if (!query || query.length < 2) {
+            clearDropdown();
+            return;
+          }
+          fetch('/api/search?q=' + encodeURIComponent(query))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              renderResults(data.results || []);
+            })
+            .catch(function(err) {
+              console.error('Sundo search error:', err);
+            });
+        }
+
+        searchInput.addEventListener('input', function(e) {
+          if (searchTimeout) clearTimeout(searchTimeout);
+          const query = e.target.value.trim();
+          if (!query || query.length < 2) {
+            clearDropdown();
+            return;
+          }
+          searchTimeout = setTimeout(function() {
+            doSearch(query);
+          }, 300);
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+          const items = searchDropdown.querySelectorAll('.search-result');
+          if (!searchDropdown.classList.contains('active')) return;
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % items.length;
+            updateSelection();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+            updateSelection();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < items.length) {
+              const el = items[selectedIndex];
+              const type = el.getAttribute('data-type');
+              const id = el.getAttribute('data-id');
+              navigateToResult(type, id);
+              clearDropdown();
+              searchInput.value = '';
+            }
+          } else if (e.key === 'Escape') {
+            clearDropdown();
+          }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+            clearDropdown();
+          }
+        });
+      })();
 
     } catch (err) {
       document.getElementById('loading').innerHTML = '<span style="color:#c94c4c">Error: ' + err.message + '</span>';

@@ -70,6 +70,11 @@ try:
 except Exception:
     _run_disclosure = None  # type: ignore[misc,assignment]
 
+try:
+    from sundo.detect.author_voice_matcher import run as _run_author_voice
+except Exception:
+    _run_author_voice = None  # type: ignore[misc,assignment]
+
 # Report / amplify modules (already imported directly in original)
 from sundo.report.alert_engine import check_and_alert
 from sundo.report.cytoscape_export import export_graph
@@ -196,6 +201,14 @@ def _register_jobs(scheduler: Any) -> None:
         hour=3,
         minute=0,
         id="disclosure_audit",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        lambda: _safe_run("author_voice_matcher", _run_author_voice),
+        trigger="interval",
+        hours=2,
+        id="author_voice_matcher",
+        name="Author-Voice Matcher",
         replace_existing=True,
     )
 

@@ -141,16 +141,19 @@ class Neo4jClient:
         flags: Optional[List[str]] = None,
     ) -> Optional[Dict[str, Any]]:
         """Create or update an :Organization node keyed by EIN."""
+        org_id = ein or name
         result = self._run(
             """
             MERGE (o:Organization {ein: $ein})
             ON CREATE SET o.created_at = datetime(),
+                          o.id = $org_id,
                           o.name = $name,
                           o.org_type = $org_type,
                           o.country = $country,
                           o.fara_registration_id = $fara_registration_id,
                           o.flags = $flags
             ON MATCH  SET o.updated_at = datetime(),
+                          o.id = coalesce(o.id, $org_id),
                           o.name = coalesce($name, o.name),
                           o.org_type = coalesce($org_type, o.org_type),
                           o.country = coalesce($country, o.country),
@@ -161,6 +164,7 @@ class Neo4jClient:
             {
                 "name": name,
                 "ein": ein or name,
+                "org_id": org_id,
                 "org_type": org_type,
                 "country": country,
                 "fara_registration_id": fara_registration_id,
@@ -354,3 +358,181 @@ class Neo4jClient:
         if result:
             return result.single()
         return None
+
+    # ------------------------------------------------------------------
+    # Author nodes
+    # ------------------------------------------------------------------
+
+    def upsert_author(self, author_data: dict) -> None:
+        """Create or update an Author node in Neo4j."""
+        if not self.is_available():
+            return
+        try:
+            from datetime import datetime as _dt
+            now = _dt.utcnow().isoformat()
+        except Exception:
+            now = None
+        self._run(
+            """
+            MERGE (a:Author {id: $id})
+            ON CREATE SET
+                a.display_name = $display_name,
+                a.handle = $handle,
+                a.byline_variants = $byline_variants,
+                a.primary_language = $primary_language,
+                a.article_count = 1,
+                a.first_seen = $now,
+                a.last_seen = $now,
+                a.linked_voice_id = null,
+                a.verification_status = 'unknown'
+            ON MATCH SET
+                a.last_seen = $now,
+                a.article_count = a.article_count + 1
+            """,
+            {**author_data, "now": now},
+        )
+
+    def upsert_article(
+        self,
+        article_id: str,
+        title: str,
+        link: str,
+        published_at: Optional[str] = None,
+        source_name: Optional[str] = None,
+    ) -> None:
+        """Create or update an Article node in Neo4j."""
+        if not self.is_available():
+            return
+        try:
+            from datetime import datetime as _dt
+            now = _dt.utcnow().isoformat()
+        except Exception:
+            now = None
+        self._run(
+            """
+            MERGE (art:Article {id: $article_id})
+            ON CREATE SET
+                art.title = $title,
+                art.link = $link,
+                art.published_at = $published_at,
+                art.source_name = $source_name,
+                art.created_at = $now
+            ON MATCH SET
+                art.title = coalesce($title, art.title),
+                art.published_at = coalesce($published_at, art.published_at),
+                art.source_name = coalesce($source_name, art.source_name)
+            """,
+            {
+                "article_id": article_id,
+                "title": title,
+                "link": link,
+                "published_at": published_at,
+                "source_name": source_name,
+                "now": now,
+            },
+        )
+
+    def link_author_to_article(
+        self,
+        author_id: str,
+        article_id: str,
+        published_at: str,
+        source_name: str,
+    ) -> None:
+        """Create WROTE relationship between Author and Article nodes."""
+        if not self.is_available():
+            return
+        self._run(
+            """
+            MATCH (a:Author {id: $author_id})
+            MATCH (art:Article {id: $article_id})
+            MERGE (a)-[r:WROTE]->(art)
+            ON CREATE SET
+                r.published_at = $published_at,
+                r.source_name = $source_name
+            """,
+            {
+                "author_id": author_id,
+                "article_id": article_id,
+                "published_at": published_at,
+                "source_name": source_name,
+            },
+        )
+
+    def link_author_to_organization(
+        self,
+        author_id: str,
+        org_id: str,
+        article_count: int,
+        first_seen: str,
+    ) -> None:
+        """Create or update WRITES_FOR relationship."""
+        if not self.is_available():
+            return
+        self._run(
+            """
+            MATCH (a:Author {id: $author_id})
+            MATCH (o:Organization {id: $org_id})
+            MERGE (a)-[r:WRITES_FOR]->(o)
+            ON CREATE SET
+                r.article_count = $article_count,
+                r.first_seen = $first_seen
+            ON MATCH SET
+                r.article_count = r.article_count + 1
+            """,
+            {
+                "author_id": author_id,
+                "org_id": org_id,
+                "article_count": article_count,
+                "first_seen": first_seen,
+            },
+        )
+
+    def link_author_to_voice(self, author_id: str, voice_handle: str) -> None:
+        """Link an Author node to a PalestinianVoice node (IS_VOICE relationship)."""
+        if not self.is_available():
+            return
+        self._run(
+            """
+            MATCH (a:Author {id: $author_id})
+            MATCH (v:PalestinianVoice {handle: $voice_handle})
+            MERGE (a)-[:IS_VOICE]->(v)
+            """,
+            {"author_id": author_id, "voice_handle": voice_handle},
+        )
+
+    def set_author_linked_voice(self, author_id: str, voice_handle: str) -> None:
+        """Update an Author node's linked_voice_id property."""
+        if not self.is_available():
+            return
+        self._run(
+            """
+            MATCH (a:Author {id: $author_id})
+            SET a.linked_voice_id = $voice_handle,
+                a.verification_status = 'verified'
+            """,
+            {"author_id": author_id, "voice_handle": voice_handle},
+        )
+
+    def flag_author_for_review(
+        self,
+        author_id: str,
+        candidate_voice_handle: str,
+        flag_reason: str,
+    ) -> None:
+        """Flag an Author node for operator review with a fuzzy candidate."""
+        if not self.is_available():
+            return
+        self._run(
+            """
+            MATCH (a:Author {id: $author_id})
+            SET a.verification_status = 'pending',
+                a.review_candidate = $candidate_voice_handle,
+                a.review_reason = $flag_reason
+            """,
+            {
+                "author_id": author_id,
+                "candidate_voice_handle": candidate_voice_handle,
+                "flag_reason": flag_reason,
+            },
+        )

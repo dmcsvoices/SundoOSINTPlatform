@@ -4,6 +4,13 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+# Load .env file if present
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent / ".env")
+except ImportError:
+    pass  # python-dotenv not installed
+
 # Base paths
 BASE_DIR = Path("/home/darren/sundo-pi")
 OUTPUT_DIR = BASE_DIR / "output"
