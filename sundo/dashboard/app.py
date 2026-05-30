@@ -41,7 +41,7 @@ if not any(isinstance(h, logging.FileHandler) and h.baseFilename.endswith("sundo
 app = Flask(__name__)
 
 # Load secret key from env (falls back to a generated one if missing, but prefer env)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "sundo-pi-fixed-secret-key-2024")
 
 # Admin credentials from env (hashed at boot so plaintext is not stored in memory)
 _ADMIN_USER = os.getenv("DASHBOARD_USER", "admin")
