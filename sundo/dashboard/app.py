@@ -841,6 +841,121 @@ def api_node_author(author_id: str):
         return jsonify({"error": "Database unavailable"}), 503
 
 
+# ---------------------------------------------------------------------------
+# Filter API — date / source / tag
+# ---------------------------------------------------------------------------
+
+@app.route("/api/filter")
+def api_filter():
+    """Return filtered graph data based on date, source, and tag criteria."""
+    days = request.args.get("days", "all")
+    source_filter = request.args.get("sources", "all")
+    tag_filter = request.args.get("tags", "all")
+
+    try:
+        # Load full graph
+        graph_path = os.path.join(os.path.dirname(__file__), "static", "graph.json")
+        with open(graph_path, "r", encoding="utf-8") as f:
+            graph = json.load(f)
+
+        nodes = graph.get("nodes", [])
+        edges = graph.get("edges", [])
+
+        # Build node ID sets for filtering
+        visible_node_ids = set()
+        article_nodes = []
+
+        for n in nodes:
+            nid = n.get("data", {}).get("id")
+            ntype = n.get("data", {}).get("type")
+            if not nid:
+                continue
+
+            # Always include non-article nodes (they provide context)
+            if ntype != "Article":
+                visible_node_ids.add(nid)
+                continue
+
+            article_nodes.append(n)
+
+        # Filter articles
+        filtered_article_ids = set()
+        for n in article_nodes:
+            data = n.get("data", {})
+            nid = data.get("id")
+            include = True
+
+            # Date filter
+            if days != "all" and days.isdigit():
+                try:
+                    pub_str = data.get("published_at", "")
+                    if pub_str:
+                        from datetime import datetime, timedelta
+                        pub_date = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                        cutoff = datetime.now(pub_date.tzinfo) - timedelta(days=int(days))
+                        if pub_date < cutoff:
+                            include = False
+                except Exception:
+                    pass  # Keep article if date parsing fails
+
+            # Source filter
+            if include and source_filter != "all":
+                source_name = data.get("source_name", "")
+                source_id = data.get("source_id", "")
+                # Match against short IDs or full names
+                if source_filter.lower() not in (source_id + source_name).lower():
+                    include = False
+
+            # Tag filter
+            if include and tag_filter != "all":
+                tags = data.get("tags", "")
+                if isinstance(tags, str):
+                    tags = tags.split(",") if tags else []
+                tag_match = any(tag_filter.lower() in t.lower() for t in tags)
+                if not tag_match:
+                    include = False
+
+            if include:
+                filtered_article_ids.add(nid)
+                visible_node_ids.add(nid)
+
+        # Also include nodes connected to filtered articles
+        connected_ids = set()
+        for e in edges:
+            src = e.get("data", {}).get("source")
+            tgt = e.get("data", {}).get("target")
+            if src in filtered_article_ids or tgt in filtered_article_ids:
+                connected_ids.add(src)
+                connected_ids.add(tgt)
+
+        visible_node_ids.update(connected_ids)
+
+        # Build filtered graph
+        filtered_nodes = [n for n in nodes if n.get("data", {}).get("id") in visible_node_ids]
+        filtered_edges = [
+            e for e in edges
+            if e.get("data", {}).get("source") in visible_node_ids
+            and e.get("data", {}).get("target") in visible_node_ids
+        ]
+
+        return jsonify({
+            "nodes": filtered_nodes,
+            "edges": filtered_edges,
+            "total_nodes": len(filtered_nodes),
+            "total_edges": len(filtered_edges),
+            "article_count": len(filtered_article_ids),
+            "filters_applied": {
+                "days": days,
+                "sources": source_filter,
+                "tags": tag_filter,
+            }
+        }), 200
+
+    except Exception as exc:
+        logger.error("Error in /api/filter: %s", exc)
+        return jsonify({"error": "Filter failed", "details": str(exc)}), 500
+
+
 @app.route("/api/node/source/<source_id>")
 def api_node_source(source_id: str):
     """Return all articles for a Source node."""

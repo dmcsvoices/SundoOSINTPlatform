@@ -229,6 +229,39 @@
     </div>
     <div id="hover">Hover a node for details.</div>
     <div id="filter-controls" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9; position: relative; z-index: 100;">
+      <div style="font-weight: bold; margin-bottom: 4px; font-size: 12px;">Filters</div>
+      <div style="margin-bottom: 6px;">
+        <label style="font-size: 11px; color: #5a4d3f;">📅 Date:</label>
+        <select id="filter-date" style="width: 100%; font-size: 11px; padding: 2px; border: 1px solid #d4c5a9; border-radius: 4px; background: #faf5ed;">
+          <option value="all">All time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 6px;">
+        <label style="font-size: 11px; color: #5a4d3f;">📰 Source:</label>
+        <select id="filter-source" style="width: 100%; font-size: 11px; padding: 2px; border: 1px solid #d4c5a9; border-radius: 4px; background: #faf5ed;">
+          <option value="all">All sources</option>
+          <option value="972mag">+972 Magazine</option>
+          <option value="alquds">Al-Quds</option>
+          <option value="mondoweiss">Mondoweiss</option>
+          <option value="palestinechronicle">Palestine Chronicle</option>
+          <option value="imeu">IMEU</option>
+          <option value="ei">Electronic Intifada</option>
+          <option value="btselem">B'Tselem</option>
+          <option value="palestinepost">Palestine Post</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 6px;">
+        <label style="font-size: 11px; color: #5a4d3f;">🏷️ Tag:</label>
+        <input type="text" id="filter-tag" placeholder="Search tags..." style="width: 100%; font-size: 11px; padding: 2px 4px; border: 1px solid #d4c5a9; border-radius: 4px; background: #faf5ed; box-sizing: border-box;">
+      </div>
+      <div style="display: flex; gap: 4px;">
+        <button id="apply-filters" style="flex: 1; font-size: 11px; padding: 4px; background: #0ca678; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+        <button id="clear-filters" style="flex: 1; font-size: 11px; padding: 4px; background: #a89b8c; color: white; border: none; border-radius: 4px; cursor: pointer;">Clear</button>
+      </div>
+      <hr style="border: none; border-top: 1px solid #d4c5a9; margin: 8px 0;">
       <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px;">
         <input type="checkbox" id="show-articles" style="margin-right: 6px; cursor: pointer;">
         Show Articles
@@ -1357,6 +1390,91 @@
           }
         });
       })();
+
+      // ---- Filter handlers ----
+      document.getElementById('apply-filters').addEventListener('click', function() {
+        const days = document.getElementById('filter-date').value;
+        const source = document.getElementById('filter-source').value;
+        const tag = document.getElementById('filter-tag').value.trim();
+        
+        const params = new URLSearchParams();
+        if (days !== 'all') params.append('days', days);
+        if (source !== 'all') params.append('sources', source);
+        if (tag) params.append('tags', tag);
+        
+        const url = '/api/filter?' + params.toString();
+        
+        fetch(url)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.error) {
+              console.error('Filter error:', data.error);
+              return;
+            }
+            
+            // Replace graph elements
+            cy.elements().remove();
+            cy.add(data.nodes.map(function(n) {
+              const el = { data: n.data };
+              if (n.data.type === 'Article') el.classes = 'article';
+              return el;
+            }));
+            cy.add(data.edges.map(function(e) {
+              const el = { data: e.data };
+              if (e.data.relationship === 'PUBLISHED') el.classes = 'article-edge';
+              return el;
+            }));
+            
+            // Apply visibility based on checkboxes
+            if (!document.getElementById('show-articles').checked) {
+              cy.nodes('.article').hide();
+              cy.edges('.article-edge').hide();
+            }
+            
+            // Re-run layout
+            const selectedLayout = document.querySelector('input[name="layout"]:checked').value;
+            runLayout(selectedLayout);
+            
+            // Update counts
+            updateCounts();
+            
+            console.log('Filter applied:', data.article_count, 'articles shown');
+          })
+          .catch(function(err) {
+            console.error('Filter fetch failed:', err);
+          });
+      });
+      
+      document.getElementById('clear-filters').addEventListener('click', function() {
+        document.getElementById('filter-date').value = 'all';
+        document.getElementById('filter-source').value = 'all';
+        document.getElementById('filter-tag').value = '';
+        
+        // Reload original graph
+        cy.elements().remove();
+        cy.add(graph.nodes.map(function(n) {
+          const el = { data: n.data };
+          if (n.data.type === 'Article') el.classes = 'article';
+          return el;
+        }));
+        cy.add(graph.edges.map(function(e) {
+          const el = { data: e.data };
+          if (e.data.relationship === 'PUBLISHED') el.classes = 'article-edge';
+          return el;
+        }));
+        
+        // Apply visibility
+        if (!document.getElementById('show-articles').checked) {
+          cy.nodes('.article').hide();
+          cy.edges('.article-edge').hide();
+        }
+        
+        const selectedLayout = document.querySelector('input[name="layout"]:checked').value;
+        runLayout(selectedLayout);
+        updateCounts();
+        
+        console.log('Filters cleared');
+      });
 
     } catch (err) {
       document.getElementById('loading').innerHTML = '<span style="color:#c94c4c">Error: ' + err.message + '</span>';
