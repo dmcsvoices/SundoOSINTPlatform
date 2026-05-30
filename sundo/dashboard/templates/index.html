@@ -53,8 +53,10 @@
       margin-right: 6px;
     }
     #loading {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       font-size: 16px; color: #4a7c59; animation: pulse 1.5s ease-in-out infinite;
+      z-index: 100; background: rgba(250,248,243,0.9); padding: 20px 40px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
     }
     @keyframes pulse {
       0%, 100% { opacity: 0.6; }
@@ -291,7 +293,7 @@
     </div>
     <button id="reset-view-btn" title="Reset view (R)">⟲ Reset view</button>
   </div>
-  <div id="loading">Loading graph...</div>
+  <div id="loading" style="display: block;">Loading graph...</div>
   <div id="cy"></div>
   <div id="detail-panel" class="panel-closed">
     <div id="panel-header">
@@ -1391,11 +1393,27 @@
         });
       })();
 
+      function showToast(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #0ca678; color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(function() { 
+          toast.style.opacity = '0'; 
+          toast.style.transition = 'opacity 0.5s'; 
+          setTimeout(function() { 
+            if (toast.parentNode) document.body.removeChild(toast); 
+          }, 500); 
+        }, 2500);
+      }
+
       // ---- Filter handlers ----
       document.getElementById('apply-filters').addEventListener('click', function() {
         const days = document.getElementById('filter-date').value;
         const source = document.getElementById('filter-source').value;
         const tag = document.getElementById('filter-tag').value.trim();
+        
+        console.log('Sundo: applying filters - days:', days, 'source:', source, 'tag:', tag);
         
         const params = new URLSearchParams();
         if (days !== 'all') params.append('days', days);
@@ -1403,27 +1421,45 @@
         if (tag) params.append('tags', tag);
         
         const url = '/api/filter?' + params.toString();
+        console.log('Sundo: filter URL:', url);
+        
+        // Show loading indicator
+        const loading = document.getElementById('loading');
+        loading.style.display = 'block';
+        loading.textContent = 'Loading filtered data...';
         
         fetch(url)
-          .then(function(r) { return r.json(); })
+          .then(function(r) { 
+            console.log('Sundo: filter response status:', r.status);
+            return r.json(); 
+          })
           .then(function(data) {
+            console.log('Sundo: filter data received:', data.total_nodes, 'nodes,', data.total_edges, 'edges,', data.article_count, 'articles');
+            
             if (data.error) {
               console.error('Filter error:', data.error);
+              loading.textContent = 'Error: ' + data.error;
+              setTimeout(function() { loading.style.display = 'none'; }, 3000);
               return;
             }
             
             // Replace graph elements
             cy.elements().remove();
+            console.log('Sundo: removed old elements');
+            
             cy.add(data.nodes.map(function(n) {
               const el = { data: n.data };
               if (n.data.type === 'Article') el.classes = 'article';
               return el;
             }));
+            console.log('Sundo: added', data.nodes.length, 'nodes');
+            
             cy.add(data.edges.map(function(e) {
               const el = { data: e.data };
               if (e.data.relationship === 'PUBLISHED') el.classes = 'article-edge';
               return el;
             }));
+            console.log('Sundo: added', data.edges.length, 'edges');
             
             // Apply visibility based on checkboxes
             if (!document.getElementById('show-articles').checked) {
@@ -1432,16 +1468,28 @@
             }
             
             // Re-run layout
-            const selectedLayout = document.querySelector('input[name="layout"]:checked').value;
+            const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'cose';
+            console.log('Sundo: running layout:', selectedLayout);
             runLayout(selectedLayout);
+            
+            // Fit to visible elements
+            setTimeout(function() {
+              cy.fit(cy.elements(':visible'), 40);
+            }, 600);
             
             // Update counts
             updateCounts();
             
-            console.log('Filter applied:', data.article_count, 'articles shown');
+            loading.style.display = 'none';
+            console.log('Filter applied successfully:', data.article_count, 'articles shown');
+            
+            // Show toast notification
+            showToast('Filter applied: ' + data.total_nodes + ' nodes, ' + data.article_count + ' articles');
           })
           .catch(function(err) {
             console.error('Filter fetch failed:', err);
+            loading.textContent = 'Error loading data';
+            setTimeout(function() { loading.style.display = 'none'; }, 3000);
           });
       });
       
