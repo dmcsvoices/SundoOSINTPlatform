@@ -451,7 +451,7 @@
       console.log('Sundo: article-edge edges:', cy.edges('.article-edge').length);
 
       // Load legend counts from API
-      fetch('/api/stats')
+      fetch('/api/stats', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(function(stats) {
           if (stats.node_counts) {
@@ -685,7 +685,7 @@
 
       function fetchAuthorDetail(authorId) {
         console.log('Sundo: fetching author detail for', authorId);
-        fetch('/api/node/author/' + encodeURIComponent(authorId))
+        fetch('/api/node/author/' + encodeURIComponent(authorId), { credentials: 'same-origin' })
           .then(function(r) { 
             console.log('Sundo: author API status', r.status);
             return r.json(); 
@@ -796,7 +796,7 @@
       }
 
       function fetchPersonDetail(handle) {
-        fetch('/api/node/person/' + encodeURIComponent(handle))
+        fetch('/api/node/person/' + encodeURIComponent(handle), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => renderPersonPanel(d))
           .catch(() => {
@@ -886,7 +886,7 @@
       }
 
       function fetchOrgDetail(orgId) {
-        fetch('/api/node/organization/' + encodeURIComponent(orgId))
+        fetch('/api/node/organization/' + encodeURIComponent(orgId), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => renderOrgPanel(d))
           .catch(() => {
@@ -940,7 +940,7 @@
       }
 
       function fetchVoiceDetail(handle) {
-        fetch('/api/node/voice/' + encodeURIComponent(handle))
+        fetch('/api/node/voice/' + encodeURIComponent(handle), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => renderVoicePanel(d))
           .catch(() => {
@@ -995,7 +995,7 @@
 
       function fetchSourceDetail(sourceId, feedUrl) {
         const url = '/api/node/source/' + encodeURIComponent(sourceId) + '?feed_url=' + encodeURIComponent(feedUrl);
-        fetch(url)
+        fetch(url, { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => renderSourcePanel(d))
           .catch(() => {
@@ -1071,7 +1071,7 @@
       }
 
       function fetchOtherDetail(nodeId) {
-        fetch('/api/node/other/' + encodeURIComponent(nodeId))
+        fetch('/api/node/other/' + encodeURIComponent(nodeId), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => renderOtherPanel(d))
           .catch(() => {
@@ -1100,7 +1100,7 @@
 
       // ---- Action handlers ----
       function toggleDigest(handle, btn) {
-        fetch('/api/action/digest-include/' + encodeURIComponent(handle), { method: 'POST' })
+        fetch('/api/action/digest-include/' + encodeURIComponent(handle), { method: 'POST', credentials: 'same-origin' })
           .then(r => r.json())
           .then(function(d) {
             btn.textContent = d.digest_include ? 'Remove from digest' : 'Add to digest';
@@ -1108,7 +1108,7 @@
       }
 
       function openFtcPackage(packagePath) {
-        fetch('/api/action/ftc-open/' + encodeURIComponent(packagePath))
+        fetch('/api/action/ftc-open/' + encodeURIComponent(packagePath), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(function(d) {
             const win = window.open('', '_blank');
@@ -1118,7 +1118,7 @@
       }
 
       function copyAmpPack(handle) {
-        fetch('/api/node/voice/' + encodeURIComponent(handle))
+        fetch('/api/node/voice/' + encodeURIComponent(handle), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(function(d) {
             const articles = (d.recent_articles || []).slice(0, 3)
@@ -1350,7 +1350,7 @@
             clearGraphFilter();
             return;
           }
-          fetch('/api/search?q=' + encodeURIComponent(query))
+          fetch('/api/search?q=' + encodeURIComponent(query), { credentials: 'same-origin' })
             .then(function(r) { return r.json(); })
             .then(function(data) {
               const results = data.results || [];
@@ -1466,7 +1466,7 @@
         loading.style.display = 'block';
         loading.textContent = 'Loading filtered data...';
         
-        fetch(url)
+        fetch(url, { credentials: 'same-origin' })
           .then(function(r) { 
             console.log('Sundo: filter response status:', r.status);
             return r.json(); 
