@@ -223,6 +223,13 @@
     <div style="text-align: right; margin-bottom: 6px;">
       <a href="/logout" style="font-size: 12px; color: #8c7b6b; text-decoration: none;">🚪 Log out</a>
     </div>
+    <div id="view-tabs" style="display: flex; gap: 2px; margin-bottom: 8px; border-bottom: 2px solid #d4c5a9; padding-bottom: 4px;">
+      <button class="view-tab active" data-view="graph" style="flex: 1; font-size: 11px; padding: 4px; background: #0ca678; color: white; border: none; border-radius: 4px; cursor: pointer;">Graph</button>
+      <button class="view-tab" data-view="authors" style="flex: 1; font-size: 11px; padding: 4px; background: #faf5ed; color: #5a4d3f; border: 1px solid #d4c5a9; border-radius: 4px; cursor: pointer;">Authors</button>
+      <button class="view-tab" data-view="articles" style="flex: 1; font-size: 11px; padding: 4px; background: #faf5ed; color: #5a4d3f; border: 1px solid #d4c5a9; border-radius: 4px; cursor: pointer;">Articles</button>
+      <button class="view-tab" data-view="sources" style="flex: 1; font-size: 11px; padding: 4px; background: #faf5ed; color: #5a4d3f; border: 1px solid #d4c5a9; border-radius: 4px; cursor: pointer;">Sources</button>
+    </div>
+    </div>
     <div id="search-container">
       <input type="text" id="search-input" placeholder="Search nodes…" autocomplete="off">
       <div id="search-dropdown"></div>
@@ -290,9 +297,48 @@
       <div><span class="dot" style="background:#e8590c"></span>Source <span id="count-source" class="count-badge"></span></div>
     </div>
     <button id="reset-view-btn" title="Reset view (R)">⟲ Reset view</button>
+    <div id="export-section" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #d4c5a9;">
+      <div style="font-weight: bold; margin-bottom: 4px; font-size: 12px;">Export</div>
+      <div style="margin-bottom: 4px;">
+        <label style="font-size: 11px; color: #5a4d3f;">Scope:</label>
+        <select id="export-scope" style="width: 100%; font-size: 11px; padding: 2px; border: 1px solid #d4c5a9; border-radius: 4px; background: #faf5ed;">
+          <option value="full">Full graph</option>
+          <option value="authors">Authors only</option>
+          <option value="articles">Articles only</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 4px;">
+        <label style="font-size: 11px; color: #5a4d3f;">Format:</label>
+        <select id="export-format" style="width: 100%; font-size: 11px; padding: 2px; border: 1px solid #d4c5a9; border-radius: 4px; background: #faf5ed;">
+          <option value="json">JSON</option>
+          <option value="csv">CSV</option>
+          <option value="gml">GML (Gephi)</option>
+        </select>
+      </div>
+      <button id="export-btn" style="width: 100%; font-size: 11px; padding: 4px; background: #4a7c59; color: white; border: none; border-radius: 4px; cursor: pointer;">⬇ Download</button>
+    </div>
   </div>
   <div id="loading">Loading graph...</div>
   <div id="cy"></div>
+  <div id="list-view" style="display: none; width: 100%; height: 100%; overflow: auto; padding: 20px; box-sizing: border-box; background: #faf8f3;">
+    <div id="list-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2 id="list-title" style="margin: 0; font-size: 18px; color: #3d3229;">Authors</h2>
+      <input type="text" id="list-search" placeholder="Search..." style="padding: 6px 10px; border: 1px solid #d4c5a9; border-radius: 6px; font-size: 13px; width: 200px; background: #faf5ed;">
+    </div>
+    <div id="list-table-container">
+      <table id="list-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead id="list-thead" style="background: #f5f0e6; position: sticky; top: 0;">
+          <!-- Dynamic -->
+        </thead>
+        <tbody id="list-tbody">
+          <!-- Dynamic -->
+        </tbody>
+      </table>
+    </div>
+    <div id="list-pagination" style="display: flex; justify-content: center; gap: 4px; margin-top: 16px;">
+      <!-- Dynamic -->
+    </div>
+  </div>
   <div id="detail-panel" class="panel-closed">
     <div id="panel-header">
       <span id="panel-title"></span>
@@ -1476,7 +1522,218 @@
         console.log('Filters cleared');
       });
 
-    } catch (err) {
+      // ---- View Tabs ----
+      let currentListType = null;
+      let currentListPage = 1;
+      let currentListSort = 'label';
+      let currentListOrder = 'asc';
+      let currentListData = null;
+
+      function showView(view) {
+        const cyEl = document.getElementById('cy');
+        const listEl = document.getElementById('list-view');
+        const tabs = document.querySelectorAll('.view-tab');
+        
+        tabs.forEach(function(tab) {
+          if (tab.dataset.view === view) {
+            tab.style.background = '#0ca678';
+            tab.style.color = 'white';
+            tab.style.borderColor = '#0ca678';
+          } else {
+            tab.style.background = '#faf5ed';
+            tab.style.color = '#5a4d3f';
+            tab.style.borderColor = '#d4c5a9';
+          }
+        });
+        
+        if (view === 'graph') {
+          cyEl.style.display = 'block';
+          listEl.style.display = 'none';
+          document.getElementById('info').style.display = 'block';
+        } else {
+          cyEl.style.display = 'none';
+          listEl.style.display = 'block';
+          document.getElementById('info').style.display = 'none';
+          currentListType = view;
+          loadList(view, 1);
+        }
+      }
+
+      document.querySelectorAll('.view-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          showView(this.dataset.view);
+        });
+      });
+
+      // ---- List Views ----
+      function loadList(type, page) {
+        currentListPage = page;
+        document.getElementById('list-title').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        document.getElementById('list-tbody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:#8c7b6b;">Loading...</td></tr>';
+        
+        const search = document.getElementById('list-search').value.trim();
+        let url = '/api/list/' + type + '?page=' + page + '&sort=' + currentListSort + '&order=' + currentListOrder;
+        if (search) url += '&q=' + encodeURIComponent(search);
+        
+        fetch(url)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            currentListData = data;
+            renderList(type, data);
+          })
+          .catch(function(err) {
+            console.error('List load error:', err);
+            document.getElementById('list-tbody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:#c94c4c;">Error loading data</td></tr>';
+          });
+      }
+
+      function renderList(type, data) {
+        const items = data.items || [];
+        const thead = document.getElementById('list-thead');
+        const tbody = document.getElementById('list-tbody');
+        const pagination = document.getElementById('list-pagination');
+        
+        // Define columns per type
+        let columns = [];
+        if (type === 'authors') {
+          columns = [
+            { key: 'label', label: 'Name', sortable: true },
+            { key: 'handle', label: 'Handle', sortable: true },
+            { key: 'article_count', label: 'Articles', sortable: true },
+            { key: 'verification_status', label: 'Status', sortable: true },
+            { key: 'primary_language', label: 'Lang', sortable: true },
+          ];
+        } else if (type === 'articles') {
+          columns = [
+            { key: 'label', label: 'Title', sortable: true },
+            { key: 'source_name', label: 'Source', sortable: true },
+            { key: 'published_at', label: 'Published', sortable: true },
+            { key: 'author_handle', label: 'Author', sortable: true },
+          ];
+        } else if (type === 'sources') {
+          columns = [
+            { key: 'label', label: 'Name', sortable: true },
+            { key: 'source_type', label: 'Type', sortable: true },
+            { key: 'source_category', label: 'Category', sortable: true },
+          ];
+        }
+        
+        // Render header
+        let headerHtml = '<tr>';
+        columns.forEach(function(col) {
+          let arrow = '';
+          if (currentListSort === col.key) {
+            arrow = currentListOrder === 'asc' ? ' ↑' : ' ↓';
+          }
+          headerHtml += '<th style="padding: 8px; text-align: left; border-bottom: 2px solid #d4c5a9; cursor: ' + (col.sortable ? 'pointer' : 'default') + '; color: #5a4d3f; font-size: 12px;"';
+          if (col.sortable) {
+            headerHtml += ' onclick="sortList(\'' + col.key + '\')"';
+          }
+          headerHtml += '>' + col.label + arrow + '</th>';
+        });
+        headerHtml += '</tr>';
+        thead.innerHTML = headerHtml;
+        
+        // Render rows
+        let bodyHtml = '';
+        if (items.length === 0) {
+          bodyHtml = '<tr><td colspan="' + columns.length + '" style="text-align:center;padding:20px;color:#8c7b6b;">No items found</td></tr>';
+        } else {
+          items.forEach(function(item) {
+            bodyHtml += '<tr style="border-bottom: 1px solid #e8dcc8; cursor: pointer;" onclick="navigateToNode(\'' + (item.id || '') + '\', \'' + type.slice(0, -1) + '\')">';
+            columns.forEach(function(col) {
+              let val = item[col.key] || '—';
+              let style = 'padding: 8px; font-size: 12px; color: #3d3229;';
+              
+              // Special formatting
+              if (col.key === 'verification_status' && val) {
+                let color = val === 'verified' ? '#3d7c3d' : val === 'suspicious' ? '#c94c4c' : '#8c7b6b';
+                let bg = val === 'verified' ? '#e0f0e0' : val === 'suspicious' ? '#fce8e8' : '#ede8de';
+                val = '<span style="font-size:10px;background:' + bg + ';color:' + color + ';padding:2px 6px;border-radius:4px;">' + val + '</span>';
+              } else if (col.key === 'published_at' && val && val !== '—') {
+                try {
+                  val = new Date(val).toLocaleDateString();
+                } catch(e) {}
+              }
+              
+              bodyHtml += '<td style="' + style + '">' + val + '</td>';
+            });
+            bodyHtml += '</tr>';
+          });
+        }
+        tbody.innerHTML = bodyHtml;
+        
+        // Render pagination
+        let pagHtml = '';
+        const totalPages = data.pagination.total_pages;
+        if (totalPages > 1) {
+          pagHtml += '<button onclick="loadListPage(' + (currentListPage - 1) + ')" ' + (currentListPage <= 1 ? 'disabled' : '') + ' style="padding: 4px 8px; border: 1px solid #d4c5a9; background: #faf5ed; border-radius: 4px; cursor: pointer; font-size: 11px;"">←</button>';
+          
+          for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentListPage - 1 && i <= currentListPage + 1)) {
+              let style = 'padding: 4px 8px; border: 1px solid #d4c5a9; border-radius: 4px; cursor: pointer; font-size: 11px;';
+              if (i === currentListPage) {
+                style += ' background: #0ca678; color: white; border-color: #0ca678;';
+              } else {
+                style += ' background: #faf5ed; color: #5a4d3f;';
+              }
+              pagHtml += '<button onclick="loadListPage(' + i + ')" style="' + style + '">' + i + '</button>';
+            } else if (i === currentListPage - 2 || i === currentListPage + 2) {
+              pagHtml += '<span style="padding: 4px; color: #8c7b6b; font-size: 11px;">...</span>';
+            }
+          }
+          
+          pagHtml += '<button onclick="loadListPage(' + (currentListPage + 1) + ')" ' + (currentListPage >= totalPages ? 'disabled' : '') + ' style="padding: 4px 8px; border: 1px solid #d4c5a9; background: #faf5ed; border-radius: 4px; cursor: pointer; font-size: 11px;"">→</button>';
+        }
+        pagHtml += '<span style="font-size: 11px; color: #8c7b6b; margin-left: 8px;">' + data.pagination.total + ' total</span>';
+        pagination.innerHTML = pagHtml;
+      }
+
+      // Make functions available globally for onclick handlers
+      window.sortList = function(key) {
+        if (currentListSort === key) {
+          currentListOrder = currentListOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentListSort = key;
+          currentListOrder = 'asc';
+        }
+        loadList(currentListType, currentListPage);
+      };
+
+      window.loadListPage = function(page) {
+        loadList(currentListType, page);
+      };
+
+      window.navigateToNode = function(id, type) {
+        showView('graph');
+        const node = cy.getElementById(id);
+        if (node && node.length > 0) {
+          cy.fit(node, 60);
+          openPanel(node.data());
+        }
+      };
+
+      document.getElementById('list-search').addEventListener('input', function() {
+        clearTimeout(window.listSearchTimeout);
+        window.listSearchTimeout = setTimeout(function() {
+          loadList(currentListType, 1);
+        }, 300);
+      });
+
+      // ---- Export ----
+      document.getElementById('export-btn').addEventListener('click', function() {
+        const scope = document.getElementById('export-scope').value;
+        const format = document.getElementById('export-format').value;
+        const url = '/api/export?format=' + format + '&scope=' + scope;
+        
+        // Trigger download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sundo_export_' + scope + '.' + format;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
       document.getElementById('loading').innerHTML = '<span style="color:#c94c4c">Error: ' + err.message + '</span>';
       console.error('Dashboard error:', err);
     }

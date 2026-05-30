@@ -6,9 +6,12 @@ import logging
 from pathlib import Path
 from sqlite3 import OperationalError
 
+import csv
+import io
+import zipfile
 import os
 
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from neo4j import GraphDatabase, basic_auth
 from neo4j.exceptions import ServiceUnavailable, AuthError
@@ -173,6 +176,196 @@ def _short_id(name: str) -> str:
     if "drop site" in name_lower:
         return "dropsite"
     return "".join(w[0] for w in name.split() if w).lower()[:8]
+
+
+# ---------------------------------------------------------------------------
+# Export helpers
+# ---------------------------------------------------------------------------
+
+
+def _filter_graph_by_scope(graph: dict, scope: str, visible_node_ids: set | None = None) -> tuple[list, list]:
+    """Filter nodes and edges based on the requested scope."""
+    nodes = graph.get("nodes", [])
+    edges = graph.get("edges", [])
+
+    if scope == "full":
+        return nodes, edges
+
+    if scope == "visible":
+        if visible_node_ids is None:
+            return nodes, edges
+        filtered_nodes = [n for n in nodes if n.get("data", {}).get("id") in visible_node_ids]
+        filtered_edges = [
+            e for e in edges
+            if e.get("data", {}).get("source") in visible_node_ids
+            and e.get("data", {}).get("target") in visible_node_ids
+        ]
+        return filtered_nodes, filtered_edges
+
+    if scope == "authors":
+        author_ids = {n.get("data", {}).get("id") for n in nodes if n.get("data", {}).get("type") == "Author"}
+        connected_ids = set(author_ids)
+        for e in edges:
+            src = e.get("data", {}).get("source")
+            tgt = e.get("data", {}).get("target")
+            if src in author_ids or tgt in author_ids:
+                connected_ids.add(src)
+                connected_ids.add(tgt)
+        filtered_nodes = [n for n in nodes if n.get("data", {}).get("id") in connected_ids]
+        filtered_edges = [
+            e for e in edges
+            if e.get("data", {}).get("source") in connected_ids
+            and e.get("data", {}).get("target") in connected_ids
+        ]
+        return filtered_nodes, filtered_edges
+
+    if scope == "articles":
+        article_ids = {n.get("data", {}).get("id") for n in nodes if n.get("data", {}).get("type") == "Article"}
+        connected_ids = set(article_ids)
+        for e in edges:
+            src = e.get("data", {}).get("source")
+            tgt = e.get("data", {}).get("target")
+            if src in article_ids or tgt in article_ids:
+                connected_ids.add(src)
+                connected_ids.add(tgt)
+        filtered_nodes = [n for n in nodes if n.get("data", {}).get("id") in connected_ids]
+        filtered_edges = [
+            e for e in edges
+            if e.get("data", {}).get("source") in connected_ids
+            and e.get("data", {}).get("target") in connected_ids
+        ]
+        return filtered_nodes, filtered_edges
+
+    return nodes, edges
+
+
+def _build_csv_zip(nodes: list, edges: list) -> bytes:
+    """Build a ZIP containing nodes.csv and edges.csv."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        node_buf = io.StringIO()
+        node_writer = csv.writer(node_buf)
+        node_writer.writerow([
+            "id", "label", "type", "source_type", "verification_status",
+            "published_at", "source_name", "tags", "article_count",
+            "platform", "follower_count", "credibility_score", "reach_score",
+            "handle", "color", "size",
+        ])
+        for n in nodes:
+            d = n.get("data", {})
+            node_writer.writerow([
+                d.get("id", ""),
+                d.get("label", ""),
+                d.get("type", ""),
+                d.get("source_type", ""),
+                d.get("verification_status", ""),
+                d.get("published_at", ""),
+                d.get("source_name", ""),
+                d.get("tags", ""),
+                d.get("article_count", ""),
+                d.get("platform", ""),
+                d.get("follower_count", ""),
+                d.get("credibility_score", ""),
+                d.get("reach_score", ""),
+                d.get("handle", ""),
+                d.get("color", ""),
+                d.get("size", ""),
+            ])
+        zf.writestr("nodes.csv", node_buf.getvalue())
+
+        edge_buf = io.StringIO()
+        edge_writer = csv.writer(edge_buf)
+        edge_writer.writerow([
+            "source", "target", "relationship", "published_at", "source_name", "article_count",
+        ])
+        for e in edges:
+            d = e.get("data", {})
+            edge_writer.writerow([
+                d.get("source", ""),
+                d.get("target", ""),
+                d.get("relationship", ""),
+                d.get("published_at", ""),
+                d.get("source_name", ""),
+                d.get("article_count", ""),
+            ])
+        zf.writestr("edges.csv", edge_buf.getvalue())
+    buf.seek(0)
+    return buf.read()
+
+
+def _build_gml(nodes: list, edges: list) -> str:
+    """Build a GML string for import into Gephi, yEd, Neo4j, etc."""
+    lines = [
+        "Creator \"Sundo Pi Export\"",
+        "Version 1.0",
+        "graph",
+        "[",
+        '    directed 1',
+    ]
+
+    for n in nodes:
+        d = n.get("data", {})
+        nid = str(d.get("id", "")).replace('"', '\\"')
+        label = str(d.get("label", "")).replace('"', '\\"')
+        ntype = str(d.get("type", "Unknown")).replace('"', '\\"')
+        color = d.get("color", "#999999")
+        if color.startswith("#") and len(color) >= 7:
+            try:
+                r = int(color[1:3], 16) / 255.0
+                g = int(color[3:5], 16) / 255.0
+                b = int(color[5:7], 16) / 255.0
+            except ValueError:
+                r = g = b = 0.5
+        else:
+            r = g = b = 0.5
+
+        lines.append("    node")
+        lines.append("    [")
+        lines.append(f'        id "{nid}"')
+        lines.append(f'        label "{label}"')
+        lines.append("        graphics")
+        lines.append("        [")
+        lines.append(f"            fill \"#{color.lstrip('#')}\"")
+        lines.append("        ]")
+        lines.append("        sundo_attributes")
+        lines.append("        [")
+        lines.append(f'            type "{ntype}"')
+        if d.get("source_type"):
+            st = str(d.get("source_type", "")).replace('"', '\\"')
+            lines.append(f'            source_type "{st}"')
+        if d.get("verification_status"):
+            vs = str(d.get("verification_status", "")).replace('"', '\\"')
+            lines.append(f'            verification_status "{vs}"')
+        if d.get("platform"):
+            pf = str(d.get("platform", "")).replace('"', '\\"')
+            lines.append(f'            platform "{pf}"')
+        if d.get("handle"):
+            h = str(d.get("handle", "")).replace('"', '\\"')
+            lines.append(f'            handle "{h}"')
+        lines.append("        ]")
+        lines.append("    ]")
+
+    for e in edges:
+        d = e.get("data", {})
+        src = str(d.get("source", "")).replace('"', '\\"')
+        tgt = str(d.get("target", "")).replace('"', '\\"')
+        rel = str(d.get("relationship", "")).replace('"', '\\"')
+        lines.append("    edge")
+        lines.append("    [")
+        lines.append(f'        source "{src}"')
+        lines.append(f'        target "{tgt}"')
+        lines.append(f'        label "{rel}"')
+        lines.append("        sundo_attributes")
+        lines.append("        [")
+        lines.append(f'            relationship "{rel}"')
+        if d.get("published_at"):
+            pub = str(d.get("published_at", "")).replace('"', '\\"')
+            lines.append(f'            published_at "{pub}"')
+        lines.append("        ]")
+        lines.append("    ]")
+
+    lines.append("]")
+    return "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -361,6 +554,197 @@ def api_graph() -> tuple[str, int, dict[str, str]]:
         200,
         {"Content-Type": "application/json"},
     )
+
+
+@app.route("/api/export")
+def api_export():
+    """Export graph data in various formats for OSINT workflows."""
+    fmt = request.args.get("format", "json").lower()
+    scope = request.args.get("scope", "full").lower()
+
+    graph = _load_graph()
+    nodes = graph.get("nodes", [])
+    edges = graph.get("edges", [])
+
+    # Filter by scope
+    if scope == "authors":
+        author_ids = {n["data"]["id"] for n in nodes if n.get("data", {}).get("type") == "Author"}
+        connected = set()
+        for e in edges:
+            src = e.get("data", {}).get("source")
+            tgt = e.get("data", {}).get("target")
+            if src in author_ids or tgt in author_ids:
+                connected.add(src)
+                connected.add(tgt)
+        nodes = [n for n in nodes if n.get("data", {}).get("id") in connected]
+        edges = [e for e in edges if e.get("data", {}).get("source") in connected and e.get("data", {}).get("target") in connected]
+    elif scope == "articles":
+        article_ids = {n["data"]["id"] for n in nodes if n.get("data", {}).get("type") == "Article"}
+        connected = set()
+        for e in edges:
+            src = e.get("data", {}).get("source")
+            tgt = e.get("data", {}).get("target")
+            if src in article_ids or tgt in article_ids:
+                connected.add(src)
+                connected.add(tgt)
+        nodes = [n for n in nodes if n.get("data", {}).get("id") in connected]
+        edges = [e for e in edges if e.get("data", {}).get("source") in connected and e.get("data", {}).get("target") in connected]
+
+    if fmt == "json":
+        response_data = json.dumps({"nodes": nodes, "edges": edges})
+        return Response(
+            response_data,
+            mimetype="application/json",
+            headers={"Content-Disposition": f'attachment; filename="sundo_export_{scope}.json"'},
+        )
+
+    elif fmt == "csv":
+        # Nodes CSV
+        nodes_buffer = io.StringIO()
+        node_writer = csv.writer(nodes_buffer)
+        node_writer.writerow(["id", "label", "type", "source_type", "source_category", "verification_status", "article_count", "published_at", "url"])
+        for n in nodes:
+            d = n.get("data", {})
+            node_writer.writerow([
+                d.get("id", ""),
+                d.get("label", ""),
+                d.get("type", ""),
+                d.get("source_type", ""),
+                d.get("source_category", ""),
+                d.get("verification_status", ""),
+                d.get("article_count", ""),
+                d.get("published_at", ""),
+                d.get("url", "")
+            ])
+
+        # Edges CSV
+        edges_buffer = io.StringIO()
+        edge_writer = csv.writer(edges_buffer)
+        edge_writer.writerow(["source", "target", "relationship", "published_at", "article_count"])
+        for e in edges:
+            d = e.get("data", {})
+            edge_writer.writerow([
+                d.get("source", ""),
+                d.get("target", ""),
+                d.get("relationship", ""),
+                d.get("published_at", ""),
+                d.get("article_count", "")
+            ])
+
+        output = f"# NODES\n{nodes_buffer.getvalue()}\n# EDGES\n{edges_buffer.getvalue()}"
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="sundo_export_{scope}.csv"'},
+        )
+
+    elif fmt == "gml":
+        gml = "graph [\n"
+        gml += '  directed 1\n'
+        gml += f'  comment "Sundo Pi OSINT Export - {scope} scope"\n'
+
+        for n in nodes:
+            d = n.get("data", {})
+            nid = d.get("id", "").replace('"', '\\"')
+            label = d.get("label", "").replace('"', '\\"')
+            ntype = d.get("type", "Unknown")
+            gml += f'  node [\n'
+            gml += f'    id "{nid}"\n'
+            gml += f'    label "{label}"\n'
+            gml += f'    type "{ntype}"\n'
+            if d.get("source_type"):
+                gml += f'    source_type "{d.get("source_type")}"\n'
+            if d.get("source_category"):
+                gml += f'    source_category "{d.get("source_category")}"\n'
+            if d.get("verification_status"):
+                gml += f'    verification_status "{d.get("verification_status")}"\n'
+            gml += f'  ]\n'
+
+        for e in edges:
+            d = e.get("data", {})
+            src = d.get("source", "").replace('"', '\\"')
+            tgt = d.get("target", "").replace('"', '\\"')
+            rel = d.get("relationship", "").replace('"', '\\"')
+            gml += f'  edge [\n'
+            gml += f'    source "{src}"\n'
+            gml += f'    target "{tgt}"\n'
+            gml += f'    relationship "{rel}"\n'
+            gml += f'  ]\n'
+
+        gml += "]\n"
+        return Response(
+            gml,
+            mimetype="text/plain",
+            headers={"Content-Disposition": f'attachment; filename="sundo_export_{scope}.gml"'},
+        )
+
+    else:
+        return jsonify({"error": f"Unsupported format: {fmt}"}), 400
+
+
+# ---------------------------------------------------------------------------
+# NEW: List views (table data)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/list/<node_type>")
+def api_list(node_type: str):
+    """Return paginated list data for table views."""
+    page = request.args.get("page", 1, type=int)
+    sort_by = request.args.get("sort", "label")
+    order = request.args.get("order", "asc").lower()
+    search = request.args.get("q", "").lower()
+    per_page = 25
+
+    graph = _load_graph()
+    nodes = graph.get("nodes", [])
+
+    # Filter by type
+    if node_type == "authors":
+        items = [n for n in nodes if n.get("data", {}).get("type") == "Author"]
+    elif node_type == "articles":
+        items = [n for n in nodes if n.get("data", {}).get("type") == "Article"]
+    elif node_type == "sources":
+        items = [n for n in nodes if n.get("data", {}).get("type") == "Source"]
+    else:
+        return jsonify({"error": f"Unknown type: {node_type}"}), 400
+
+    # Search filter
+    if search:
+        filtered = []
+        for n in items:
+            d = n.get("data", {})
+            text = f"{d.get('label', '')} {d.get('source_name', '')} {d.get('tags', '')}".lower()
+            if search in text:
+                filtered.append(n)
+        items = filtered
+
+    # Sort
+    reverse = order == "desc"
+    def sort_key(n):
+        d = n.get("data", {})
+        val = d.get(sort_by, "")
+        if isinstance(val, (int, float)):
+            return val
+        return str(val).lower()
+
+    items.sort(key=sort_key, reverse=reverse)
+
+    # Paginate
+    total = len(items)
+    start = (page - 1) * per_page
+    end = start + per_page
+    page_items = items[start:end]
+
+    return jsonify({
+        "items": [n.get("data", {}) for n in page_items],
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page,
+        },
+        "sort": {"by": sort_by, "order": order},
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -841,11 +1225,216 @@ def api_node_author(author_id: str):
         return jsonify({"error": "Database unavailable"}), 503
 
 
+
 # ---------------------------------------------------------------------------
-# Filter API — date / source / tag
+# List API endpoints
 # ---------------------------------------------------------------------------
 
-@app.route("/api/filter")
+@app.route("/api/list/authors")
+def api_list_authors():
+    """Return paginated list of authors with sorting and search.
+
+    Query params:
+      page   — page number (default: 1)
+      sort   — column to sort by (default: article_count)
+      order  — asc or desc (default: desc)
+      search — filter by name or handle (default: '')
+    """
+    page = request.args.get("page", "1")
+    sort = request.args.get("sort", "article_count")
+    order = request.args.get("order", "desc")
+    search = request.args.get("search", "").strip()
+
+    try:
+        page = max(1, int(page))
+    except ValueError:
+        page = 1
+
+    # Validate sort column
+    allowed_sort = {"display_name", "handle", "article_count", "verification_status", "primary_language", "first_seen", "last_seen"}
+    if sort not in allowed_sort:
+        sort = "article_count"
+    order_sql = "DESC" if order.lower() == "desc" else "ASC"
+
+    per_page = 25
+    offset = (page - 1) * per_page
+
+    where_clause = ""
+    params = []
+    if search:
+        where_clause = "WHERE display_name LIKE ? OR handle LIKE ?"
+        pattern = f"%{search}%"
+        params = [pattern, pattern]
+
+    # Count total
+    count_sql = f"SELECT COUNT(*) as total FROM authors {where_clause}"
+    count_rows = _sqlite_run(count_sql, tuple(params))
+    total = count_rows[0]["total"] if count_rows else 0
+
+    # Fetch page
+    data_sql = f"""
+        SELECT id, display_name, handle, byline_variants, primary_language,
+               article_count, first_seen, last_seen, verification_status
+        FROM authors
+        {where_clause}
+        ORDER BY {sort} {order_sql}
+        LIMIT ? OFFSET ?
+    """
+    params_with_pagination = list(params) + [per_page, offset]
+    rows = _sqlite_run(data_sql, tuple(params_with_pagination))
+
+    if rows is None:
+        return jsonify({"error": "Database unavailable"}), 503
+
+    import json
+    items = []
+    for r in rows:
+        variants = r.get("byline_variants", "[]")
+        try:
+            variants = json.loads(variants) if variants else []
+        except Exception:
+            variants = []
+        items.append({
+            "id": r.get("id", ""),
+            "name": r.get("display_name") or r.get("handle") or r.get("id", ""),
+            "handle": r.get("handle", ""),
+            "article_count": r.get("article_count") or 0,
+            "verification_status": r.get("verification_status") or "pending",
+            "primary_language": r.get("primary_language") or "en",
+            "first_seen": r.get("first_seen"),
+            "last_seen": r.get("last_seen"),
+            "byline_variants": variants,
+        })
+
+    return jsonify({
+        "items": items,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": (total + per_page - 1) // per_page,
+        "sort": sort,
+        "order": order.lower(),
+    }), 200
+
+
+@app.route("/api/list/articles")
+def api_list_articles():
+    """Return paginated list of articles with sorting and search.
+
+    Query params:
+      page   — page number (default: 1)
+      sort   — column to sort by (default: published_at)
+      order  — asc or desc (default: desc)
+      search — filter by title, authors, or tags (default: '')
+    """
+    page = request.args.get("page", "1")
+    sort = request.args.get("sort", "published_at")
+    order = request.args.get("order", "desc")
+    search = request.args.get("search", "").strip()
+
+    try:
+        page = max(1, int(page))
+    except ValueError:
+        page = 1
+
+    allowed_sort = {"title", "published_at", "authors", "feed_url", "source_type"}
+    if sort not in allowed_sort:
+        sort = "published_at"
+    order_sql = "DESC" if order.lower() == "desc" else "ASC"
+
+    per_page = 25
+    offset = (page - 1) * per_page
+
+    where_clause = ""
+    params = []
+    if search:
+        where_clause = "WHERE title LIKE ? OR authors LIKE ? OR tags LIKE ?"
+        pattern = f"%{search}%"
+        params = [pattern, pattern, pattern]
+
+    # Count total
+    count_sql = f"SELECT COUNT(*) as total FROM rss_articles {where_clause}"
+    count_rows = _sqlite_run(count_sql, tuple(params))
+    total = count_rows[0]["total"] if count_rows else 0
+
+    # Fetch page
+    data_sql = f"""
+        SELECT title, link, feed_url, published_at, authors, tags, source_type
+        FROM rss_articles
+        {where_clause}
+        ORDER BY {sort} {order_sql}
+        LIMIT ? OFFSET ?
+    """
+    params_with_pagination = list(params) + [per_page, offset]
+    rows = _sqlite_run(data_sql, tuple(params_with_pagination))
+
+    if rows is None:
+        return jsonify({"error": "Database unavailable"}), 503
+
+    items = []
+    for r in rows:
+        feed_url = r.get("feed_url", "")
+        items.append({
+            "id": _article_id(r.get("link", "")),
+            "title": r.get("title", "Untitled"),
+            "source": _feed_url_to_name(feed_url),
+            "source_url": feed_url,
+            "published_at": r.get("published_at"),
+            "authors": r.get("authors", ""),
+            "tags": r.get("tags", ""),
+            "url": r.get("link", ""),
+        })
+
+    return jsonify({
+        "items": items,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": (total + per_page - 1) // per_page,
+        "sort": sort,
+        "order": order.lower(),
+    }), 200
+
+
+@app.route("/api/list/sources")
+def api_list_sources():
+    """Return list of sources with article counts.
+
+    Query params:
+      search — filter by name (default: '')
+    """
+    search = request.args.get("search", "").strip().lower()
+
+    # Build source list from config + article counts from SQLite
+    sources = []
+    for name, url in AMPLIFY_FEEDS + MONITOR_FEEDS:
+        short_id = _short_id(name)
+        source_type = "amplify" if (name, url) in AMPLIFY_FEEDS else "monitor"
+        if search and search not in name.lower() and search not in url.lower():
+            continue
+
+        # Count articles for this feed
+        count_rows = _sqlite_run(
+            "SELECT COUNT(*) as total FROM rss_articles WHERE feed_url = ? OR feed_url = ? OR feed_url = ?",
+            (url, url.rstrip("/"), url.split("?")[0].rstrip("/")),
+        )
+        article_count = count_rows[0]["total"] if count_rows else 0
+
+        sources.append({
+            "id": short_id,
+            "name": name,
+            "url": url,
+            "type": source_type,
+            "category": source_type,
+            "article_count": article_count,
+        })
+
+    return jsonify({
+        "items": sources,
+        "total": len(sources),
+    }), 200
+
+
 def api_filter():
     """Return filtered graph data based on date, source, and tag criteria."""
     days = request.args.get("days", "all")
