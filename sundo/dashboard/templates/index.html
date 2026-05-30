@@ -659,25 +659,6 @@
           fetchOtherDetail(id);
         }
       }
-          title.textContent = nodeData.label || id;
-          fetchOrgDetail(id);
-        } else if (type === 'PalestinianVoice') {
-          title.textContent = '@' + id;
-          fetchVoiceDetail(id);
-        } else if (type === 'Author') {
-          title.textContent = nodeData.label || nodeData.id;
-          fetchAuthorDetail(id);
-        } else if (type === 'Source') {
-          title.textContent = nodeData.label || id;
-          fetchSourceDetail(id, nodeData.feed_url || '');
-        } else if (type === 'Article') {
-          title.textContent = nodeData.label || 'Article';
-          renderArticlePanel(nodeData);
-        } else {
-          title.textContent = nodeData.label || 'Node';
-          fetchOtherDetail(id);
-        }
-      }
 
       function closePanel() {
         document.getElementById('detail-panel').classList.remove('panel-open');
