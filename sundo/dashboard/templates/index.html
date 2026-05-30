@@ -626,17 +626,39 @@
       });
 
       function openPanel(nodeData) {
+        console.log('Sundo: openPanel called for', nodeData.type, nodeData.id);
         const panel = document.getElementById('detail-panel');
         const body = document.getElementById('panel-body');
         const title = document.getElementById('panel-title');
         body.innerHTML = '<div class="loading-state">Loading...</div>';
         panel.classList.add('panel-open');
+        console.log('Sundo: panel opened');
         const type = nodeData.type;
         const id = nodeData.id;
         if (type === 'Person') {
           title.textContent = '@' + id;
           fetchPersonDetail(id);
         } else if (type === 'Organization') {
+          title.textContent = nodeData.label || id;
+          fetchOrgDetail(id);
+        } else if (type === 'PalestinianVoice') {
+          title.textContent = '@' + id;
+          fetchVoiceDetail(id);
+        } else if (type === 'Author') {
+          title.textContent = nodeData.label || nodeData.id;
+          console.log('Sundo: fetching author', id);
+          fetchAuthorDetail(id);
+        } else if (type === 'Source') {
+          title.textContent = nodeData.label || id;
+          fetchSourceDetail(id, nodeData.feed_url || '');
+        } else if (type === 'Article') {
+          title.textContent = nodeData.label || 'Article';
+          renderArticlePanel(nodeData);
+        } else {
+          title.textContent = nodeData.label || 'Node';
+          fetchOtherDetail(id);
+        }
+      }
           title.textContent = nodeData.label || id;
           fetchOrgDetail(id);
         } else if (type === 'PalestinianVoice') {
@@ -662,35 +684,45 @@
       }
 
       function fetchAuthorDetail(authorId) {
+        console.log('Sundo: fetching author detail for', authorId);
         fetch('/api/node/author/' + encodeURIComponent(authorId))
-          .then(r => r.json())
-          .then(d => renderAuthorPanel(d))
-          .catch(() => {
+          .then(function(r) { 
+            console.log('Sundo: author API status', r.status);
+            return r.json(); 
+          })
+          .then(function(d) { 
+            console.log('Sundo: author data received', Object.keys(d));
+            renderAuthorPanel(d); 
+          })
+          .catch(function(err) {
+            console.error('Sundo: author fetch failed', err);
             document.getElementById('panel-body').innerHTML =
-              '<div class="loading-state">Could not load author data.</div>';
+              '<div class="loading-state">Could not load author data: ' + err.message + '</div>';
           });
       }
 
       function renderAuthorPanel(d) {
-        let html = '';
-        // Status badges
-        html += '<div class="panel-section">';
-        html += '<span class="badge badge-green">Author</span> ';
-        if (d.primary_language === 'ar') {
-          html += '<span class="badge badge-blue">Arabic</span> ';
-        }
-        if (d.linked_voice) {
-          html += '<span class="badge" style="background:#ede9fe;color:#5f3dc4">' +
-            'Voice matched</span>';
-        }
-        // Verification status badge
-        const vStatus = d.verification_status || 'pending';
-        let vBadgeClass = 'badge-gray';
-        if (vStatus === 'verified') vBadgeClass = 'badge-green';
-        if (vStatus === 'suspicious') vBadgeClass = 'badge-red';
-        html += '<span class="badge ' + vBadgeClass + '">' +
-          vStatus.charAt(0).toUpperCase() + vStatus.slice(1) + '</span>';
-        html += '</div>';
+        console.log('Sundo: renderAuthorPanel called', d);
+        try {
+          let html = '';
+          // Status badges
+          html += '<div class="panel-section">';
+          html += '<span class="badge badge-green">Author</span> ';
+          if (d.primary_language === 'ar') {
+            html += '<span class="badge badge-blue">Arabic</span> ';
+          }
+          if (d.linked_voice) {
+            html += '<span class="badge" style="background:#ede9fe;color:#5f3dc4">' +
+              'Voice matched</span>';
+          }
+          // Verification status badge
+          const vStatus = d.verification_status || 'pending';
+          let vBadgeClass = 'badge-gray';
+          if (vStatus === 'verified') vBadgeClass = 'badge-green';
+          if (vStatus === 'suspicious') vBadgeClass = 'badge-red';
+          html += '<span class="badge ' + vBadgeClass + '">' +
+            vStatus.charAt(0).toUpperCase() + vStatus.slice(1) + '</span>';
+          html += '</div>';
 
         // Core stats
         html += '<div class="panel-section">';
@@ -755,6 +787,12 @@
         }
 
         document.getElementById('panel-body').innerHTML = html;
+          console.log('Sundo: author panel rendered successfully');
+        } catch (err) {
+          console.error('Sundo: renderAuthorPanel error', err);
+          document.getElementById('panel-body').innerHTML =
+            '<div class="loading-state">Error rendering author data: ' + err.message + '</div>';
+        }
       }
 
       function fetchPersonDetail(handle) {
