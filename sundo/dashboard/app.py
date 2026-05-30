@@ -138,9 +138,12 @@ def _article_id(link: str) -> str:
     """Generate the same article node id used in cytoscape_export."""
     if not link:
         return "article_unknown"
-    from urllib.parse import urlparse
-    domain = urlparse(link).netloc.replace("www.", "")
     h = hashlib.md5(link.encode()).hexdigest()[:8]
+    # Try to extract domain
+    domain = "article"
+    if "://" in link:
+        domain_part = link.split("://", 1)[1].split("/", 1)[0]
+        domain = domain_part.replace("www.", "").replace(".", "_")
     return f"article_{domain}__{h}"
 
 
@@ -178,10 +181,16 @@ def _short_id(name: str) -> str:
 
 @app.before_request
 def require_login():
-    """Redirect unauthenticated users to /login (except for login route and static assets)."""
-    if request.endpoint in ("login", "static"):
+    """Redirect unauthenticated users to /login (except for public routes and static assets).
+    
+    API routes return 401 Unauthorized JSON instead of a redirect.
+    """
+    if request.endpoint in ("login", "static", "index"):
         return None
     if not session.get("logged_in"):
+        # API routes should return 401 JSON, not an HTML redirect
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Unauthorized"}), 401
         return redirect(url_for("login"))
 
 
@@ -214,18 +223,15 @@ def logout() -> str:
 def api_stats():
     """Return article and node counts for the legend."""
     try:
-        # Count articles in SQLite
-        article_count = 0
-        rows = _sqlite_run("SELECT COUNT(*) as count FROM rss_articles")
-        if rows:
-            article_count = rows[0].get("count", 0) or 0
-
         # Count node types from graph.json (fast, no DB needed)
         graph = _load_graph()
         node_counts = {}
         for n in graph.get("nodes", []):
             t = n.get("data", {}).get("type", "Unknown")
             node_counts[t] = node_counts.get(t, 0) + 1
+
+        # Article count must come from the graph so it matches the legend
+        article_count = node_counts.get("Article", 0)
 
         return jsonify({
             "article_count": article_count,
@@ -708,13 +714,19 @@ def api_node_author(author_id: str):
         else:
             # Fallback to SQLite
             rows = _sqlite_run(
-                "SELECT id, display_name, handle, article_count, first_seen, last_seen FROM authors WHERE id = ?",
+                "SELECT id, display_name, handle, article_count, first_seen, last_seen, verification_status, byline_variants FROM authors WHERE id = ?",
                 (author_id,),
             )
             if not rows:
                 return jsonify({"error": "Author not found"}), 404
             
+            import json
             row = rows[0]
+            byline_variants = row.get("byline_variants", "[]")
+            try:
+                byline_variants = json.loads(byline_variants) if byline_variants else []
+            except Exception:
+                byline_variants = []
             author = {
                 "type": "Author",
                 "id": author_id,
@@ -725,8 +737,8 @@ def api_node_author(author_id: str):
                 "first_seen": row.get("first_seen"),
                 "last_seen": row.get("last_seen"),
                 "linked_voice_id": None,
-                "verification_status": "pending",
-                "byline_variants": [],
+                "verification_status": row.get("verification_status") or "pending",
+                "byline_variants": byline_variants,
             }
 
         # Neo4j: articles written (with SQLite fallback)
@@ -880,6 +892,7 @@ def api_node_source(source_id: str):
             "id": source_id,
             "source_name": _feed_url_to_name(feed_url),
             "source_type": "amplify" if any(feed_url == u for _, u in AMPLIFY_FEEDS) else "monitor",
+            "source_category": "amplify" if any(feed_url == u for _, u in AMPLIFY_FEEDS) else "monitor",
             "feed_url": feed_url,
             "article_count": len(articles),
             "articles": articles,
@@ -931,11 +944,30 @@ def api_node_other(node_id: str):
             if rows:
                 row = rows[0]
         else:
-            # Fallback: try to find by partial link match from node_id pattern
-            # article_www.alquds.com__2534 -> try LIKE '%www.alquds.com%'
+            # Fallback: try to find exact article by matching generated IDs
             parts = node_id.replace("article_", "").split("__")
-            if len(parts) >= 1:
-                domain_part = parts[0]
+            if len(parts) >= 2:
+                domain_part = parts[0].replace("_", ".")
+                # Get all articles from this domain and find exact match by ID
+                rows = _sqlite_run(
+                    "SELECT * FROM rss_articles WHERE link LIKE ?",
+                    (f"%{domain_part}%",),
+                )
+                if rows:
+                    for r in rows:
+                        if _article_id(r.get("link", "")) == node_id:
+                            row = r
+                            break
+                # If no exact match, fall back to most recent from domain
+                if row is None:
+                    rows = _sqlite_run(
+                        "SELECT * FROM rss_articles WHERE link LIKE ? ORDER BY published_at DESC LIMIT 1",
+                        (f"%{domain_part}%",),
+                    )
+                    if rows:
+                        row = rows[0]
+            elif len(parts) == 1:
+                domain_part = parts[0].replace("_", ".")
                 rows = _sqlite_run(
                     "SELECT * FROM rss_articles WHERE link LIKE ? ORDER BY published_at DESC LIMIT 1",
                     (f"%{domain_part}%",),

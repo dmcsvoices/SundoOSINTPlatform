@@ -18,6 +18,28 @@
     #info h1::before { content: "🌿 "; }
     #legend { margin-top: 8px; }
     .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    #reset-view-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid #d4c5a9;
+      background: #faf5ed;
+      color: #3d3229;
+      font-weight: 500;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    #reset-view-btn:hover {
+      background: #f0e8d8;
+      border-color: #c4b499;
+    }
+    @media (prefers-color-scheme: dark) {
+      #reset-view-btn { background: #2a3f2a; border-color: #4a5c3d; color: #e8dfd0; }
+      #reset-view-btn:hover { background: #334a33; }
+    }
     #layout-toggle {
       margin-top: 10px;
       font-size: 12px;
@@ -208,7 +230,7 @@
     <div id="hover">Hover a node for details.</div>
     <div id="filter-controls" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9; position: relative; z-index: 100;">
       <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px;">
-        <input type="checkbox" id="show-articles" style="margin-right: 6px; cursor: pointer;" checked>
+        <input type="checkbox" id="show-articles" style="margin-right: 6px; cursor: pointer;">
         Show Articles
       </label>
       <label style="display: flex; align-items: center; cursor: pointer; font-size: 12px; margin-top: 4px;">
@@ -218,8 +240,8 @@
     </div>
     <div id="layout-toggle" style="margin: 8px 0; padding: 8px 0; border-top: 1px solid #d4c5a9;">
       <div style="font-weight: bold; margin-bottom: 4px; font-size: 12px;">Layout</div>
-      <label><input type="radio" name="layout" value="concentric" checked> Concentric (hub-spoke)</label>
-      <label><input type="radio" name="layout" value="cose"> Cose (organic)</label>
+      <label><input type="radio" name="layout" value="concentric"> Concentric (hub-spoke)</label>
+      <label><input type="radio" name="layout" value="cose" checked> Cose (organic)</label>
       <label><input type="radio" name="layout" value="circle"> Circle</label>
       <label><input type="radio" name="layout" value="grid"> Grid</label>
       <label><input type="radio" name="layout" value="breadthfirst"> Tree</label>
@@ -232,7 +254,9 @@
       <div><span class="dot" style="background:#7cb342"></span>PalestinianVoice <span id="count-voice" class="count-badge"></span></div>
       <div><span class="dot" style="background:#a89b8c"></span>Article <span id="count-article" class="count-badge"></span></div>
       <div><span class="dot" style="background:#0ca678"></span>Author <span id="count-author" class="count-badge"></span></div>
+      <div><span class="dot" style="background:#e8590c"></span>Source <span id="count-source" class="count-badge"></span></div>
     </div>
+    <button id="reset-view-btn" title="Reset view (R)">⟲ Reset view</button>
   </div>
   <div id="loading">Loading graph...</div>
   <div id="cy"></div>
@@ -263,6 +287,7 @@
         if (t === 'Organization') return '#3d8c9e';
         if (t === 'PalestinianVoice') return '#7cb342';
         if (t === 'Author') return '#0ca678';
+        if (t === 'Source') return '#e8590c';
         return '#a89b8c';
       }
 
@@ -353,21 +378,37 @@
             'target-arrow-shape': 'triangle',
             'line-style': 'dotted',
             'opacity': 0.8,
+          }},
+          { selector: 'node.highlighted', style: {
+            'border-width': 4,
+            'border-color': '#f4a261',
+            'width': 32,
+            'height': 32,
+            'shadow-blur': 12,
+            'shadow-color': '#f4a261',
+            'shadow-opacity': 0.5,
+            'z-index': 999,
+            'opacity': 1,
+          }},
+          { selector: 'node.dimmed', style: {
+            'opacity': 0.15,
+            'label': '',
+          }},
+          { selector: 'edge.dimmed', style: {
+            'opacity': 0.1,
+            'label': '',
+          }},
+          { selector: 'edge.highlighted', style: {
+            'opacity': 0.8,
+            'width': 3,
           }}
         ],
         layout: {
-          name: 'concentric',
+          name: 'cose',
           fit: true,
           padding: 30,
           animate: true,
           animationDuration: 500,
-          levelWidth: function() { return 1; },
-          concentric: function(n) {
-            const type = n.data('type');
-            if (type === 'Source') return 10;
-            if (type === 'Person' || type === 'PalestinianVoice' || type === 'Organization' || type === 'Author') return 5;
-            return 1;
-          }
         }
       });
       console.log('Sundo: cytoscape initialized with', cy.nodes().length, 'total nodes');
@@ -381,18 +422,20 @@
           if (stats.node_counts) {
             const nc = stats.node_counts;
             // Person (FARA-linked) — we need to count from graph data since API doesn't split by fara flag
-            let personFara = 0, personUnlinked = 0;
+            let personFara = 0, personUnlinked = 0, sourceCount = 0;
             graph.nodes.forEach(function(n) {
               if (n.data.type === 'Person') {
                 if (n.data.fara_linked) personFara++;
                 else personUnlinked++;
               }
+              if (n.data.type === 'Source') sourceCount++;
             });
             document.getElementById('count-person-fara').textContent = '(' + personFara + ')';
             document.getElementById('count-person').textContent = '(' + personUnlinked + ')';
             document.getElementById('count-org').textContent = '(' + (nc['Organization'] || 0) + ')';
             document.getElementById('count-voice').textContent = '(' + (nc['PalestinianVoice'] || 0) + ')';
             document.getElementById('count-author').textContent = '(' + (nc['Author'] || 0) + ')';
+            document.getElementById('count-source').textContent = '(' + sourceCount + ')';
           }
           if (stats.article_count !== undefined) {
             document.getElementById('count-article').textContent = '(' + stats.article_count + ')';
@@ -410,9 +453,30 @@
       cy.on('mouseover', 'node', function(evt) {
         const n = evt.target;
         const info = document.getElementById('hover');
-        const cs = (n.data('type') === 'Person') ? n.data('credibility_score') : null;
-        const csText = (cs !== null && cs !== undefined) ? '<br>Credibility: ' + Number(cs).toFixed(2) : '';
-        info.innerHTML = '<strong>' + (n.data('label') || n.id()) + '</strong><br>Type: ' + (n.data('type') || 'Unknown') + csText;
+        const type = n.data('type');
+        let extra = '';
+
+        if (type === 'Author') {
+          extra = '<br>Handle: @' + (n.data('handle') || n.id()) + '<br>Articles: ' + (n.data('article_count') || 0);
+        } else if (type === 'Article') {
+          const pub = n.data('published_at');
+          const pubStr = pub ? new Date(pub).toLocaleDateString() : '—';
+          extra = '<br>Published: ' + pubStr + '<br>Source: ' + (n.data('source_name') || '—');
+        } else if (type === 'Source') {
+          const cat = n.data('source_category');
+          const catLabel = cat ? cat.toUpperCase() : '—';
+          const catColor = cat === 'amplify' ? '#4e7e28' : '#b86d1a';
+          extra = '<br>Type: ' + (n.data('source_type') || '—');
+          if (cat) extra += '<br>Category: <span style="font-size:10px;background:' + catColor + ';color:#fff;padding:2px 6px;border-radius:4px;">' + catLabel + '</span>';
+        } else if (type === 'Person') {
+          extra = '<br>Platform: ' + (n.data('platform') || '—') + '<br>Followers: ' + ((n.data('follower_count') || 0).toLocaleString());
+          const cs = n.data('credibility_score');
+          if (cs !== null && cs !== undefined) extra += '<br>Credibility: ' + Number(cs).toFixed(2);
+        } else if (type === 'PalestinianVoice') {
+          extra = '<br>Platform: ' + (n.data('platform') || '—') + '<br>Reach: ' + Math.round((n.data('reach_score') || 0) * 100) + '%';
+        }
+
+        info.innerHTML = '<strong>' + (n.data('label') || n.id()) + '</strong><br>Type: ' + (type || 'Unknown') + extra;
       });
 
       cy.on('mouseout', 'node', function() {
@@ -469,8 +533,21 @@
           console.log('Sundo: hid articles');
         }
         // Re-run selected layout after toggle so nodes recenter
-        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'concentric';
+        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'cose';
         runLayout(selectedLayout);
+      });
+
+      document.getElementById('reset-view-btn').addEventListener('click', function() {
+        cy.fit(cy.elements(':visible'), 40);
+      });
+
+      // Keyboard shortcut: R to reset view
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'r' || e.key === 'R') {
+          // Don't trigger if user is typing in an input
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          cy.fit(cy.elements(':visible'), 40);
+        }
       });
 
       document.getElementById('toggle-authors').addEventListener('change', function(e) {
@@ -487,19 +564,20 @@
           authorNodes.hide();
           authorNodes.connectedEdges().hide();
         }
-        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'concentric';
+        const selectedLayout = document.querySelector('input[name="layout"]:checked')?.value || 'cose';
         runLayout(selectedLayout);
       }
 
       // Sync initial checkbox state on load
       (function syncInitialState() {
         const checkbox = document.getElementById('show-articles');
-        if (!checkbox.checked) {
-          cy.nodes('.article').hide();
-          cy.edges('.article-edge').hide();
-          const visible = cy.nodes(':visible');
-          if (visible.length > 0) cy.fit(visible, 40);
-        }
+        // Always hide articles on initial load
+        checkbox.checked = false;
+        cy.nodes('.article').hide();
+        cy.edges('.article-edge').hide();
+        const visible = cy.nodes(':visible');
+        if (visible.length > 0) cy.fit(visible, 40);
+        runLayout('cose');
       })();
 
       // ---- Click handlers + side panel ----
@@ -535,8 +613,11 @@
         } else if (type === 'Source') {
           title.textContent = nodeData.label || id;
           fetchSourceDetail(id, nodeData.feed_url || '');
-        } else {
+        } else if (type === 'Article') {
           title.textContent = nodeData.label || 'Article';
+          renderArticlePanel(nodeData);
+        } else {
+          title.textContent = nodeData.label || 'Node';
           fetchOtherDetail(id);
         }
       }
@@ -567,6 +648,13 @@
           html += '<span class="badge" style="background:#ede9fe;color:#5f3dc4">' +
             'Voice matched</span>';
         }
+        // Verification status badge
+        const vStatus = d.verification_status || 'pending';
+        let vBadgeClass = 'badge-gray';
+        if (vStatus === 'verified') vBadgeClass = 'badge-green';
+        if (vStatus === 'suspicious') vBadgeClass = 'badge-red';
+        html += '<span class="badge ' + vBadgeClass + '">' +
+          vStatus.charAt(0).toUpperCase() + vStatus.slice(1) + '</span>';
         html += '</div>';
 
         // Core stats
@@ -846,9 +934,18 @@
       function renderSourcePanel(d) {
         let html = '';
         const typeColor = d.source_type === 'amplify' ? 'badge-green' : 'badge-gray';
+        const catColor = d.source_category === 'amplify' ? 'badge-green' : 'badge-orange';
         html += '<div class="panel-section">';
         html += '<span class="badge ' + typeColor + '">' + (d.source_type === 'amplify' ? 'Amplify' : 'Monitor') + '</span> ';
-        html += '<span class="badge badge-blue">' + d.article_count + ' articles</span>';
+        html += '<span class="badge ' + catColor + '">' + (d.source_category === 'amplify' ? 'Amplify' : 'Monitor') + '</span> ';
+        html += '<span class="badge badge-blue">' + (d.article_count || 0) + ' articles</span>';
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Source Info</div>';
+        html += row('Feed URL', d.feed_url || '—');
+        html += row('Type', d.source_type || '—');
+        html += row('Category', d.source_category ? d.source_category.charAt(0).toUpperCase() + d.source_category.slice(1) : '—');
+        html += row('Articles', (d.article_count || 0).toString());
         html += '</div>';
         html += '<div class="panel-section">';
         html += '<div class="panel-section-title">Articles</div>';
@@ -864,6 +961,39 @@
           html += '<div class="loading-state">No articles found.</div>';
         }
         html += '</div>';
+        document.getElementById('panel-body').innerHTML = html;
+      }
+
+      function renderArticlePanel(d) {
+        let html = '';
+        html += '<div class="panel-section">';
+        html += '<span class="badge badge-gray">Article</span> ';
+        if (d.source_type) {
+          const typeColor = d.source_type === 'amplify' ? 'badge-green' : 'badge-gray';
+          html += '<span class="badge ' + typeColor + '">' + (d.source_type === 'amplify' ? 'Amplify' : 'Monitor') + '</span> ';
+        }
+        html += '</div>';
+        html += '<div class="panel-section">';
+        html += '<div class="panel-section-title">Article</div>';
+        if (d.article_link || d.url) {
+          html += '<div style="font-weight:500;margin-bottom:8px;line-height:1.4"><a href="' + (d.article_link || d.url) + '" target="_blank" style="color:#2e6b9e;text-decoration:none;">' + (d.title || 'Untitled') + '</a></div>';
+        } else {
+          html += '<div style="font-weight:500;margin-bottom:8px;line-height:1.4">' + (d.title || 'Untitled') + '</div>';
+        }
+        html += row('Source', d.source_name || '—');
+        html += row('Published', fmtDate(d.published_at));
+        if (d.authors) {
+          const authors = Array.isArray(d.authors) ? d.authors.join(', ') : d.authors;
+          html += row('Authors', authors);
+        }
+        if (d.tags && d.tags.length > 0) {
+          const tags = Array.isArray(d.tags) ? d.tags.join(', ') : d.tags;
+          html += row('Tags', tags);
+        }
+        html += '</div>';
+        if (d.article_link || d.url) {
+          html += '<a href="' + (d.article_link || d.url) + '" target="_blank" class="action-btn primary">Read article →</a>';
+        }
         document.getElementById('panel-body').innerHTML = html;
       }
 
@@ -952,6 +1082,99 @@
         let searchTimeout = null;
         let selectedIndex = -1;
         let currentResults = [];
+        let activeSearchIds = new Set();
+        let isSearchActive = false;
+
+        function clearGraphFilter() {
+          if (!isSearchActive) return;
+          cy.nodes().forEach(function(node) {
+            node.style('opacity', 1);
+            node.style('border-width', 2);
+            node.style('border-color', '#6b5e4f');
+          });
+          cy.edges().forEach(function(edge) {
+            edge.style('opacity', 1);
+          });
+          isSearchActive = false;
+          activeSearchIds.clear();
+        }
+
+        function applyGraphFilter(results) {
+          clearGraphFilter();
+          if (!results || results.length === 0) {
+            isSearchActive = true;
+            cy.nodes().forEach(function(node) {
+              node.style('opacity', 0.2);
+            });
+            cy.edges().forEach(function(edge) {
+              edge.style('opacity', 0.1);
+            });
+            return;
+          }
+
+          // Collect IDs that exist in the graph
+          const matchingIds = new Set();
+          for (const r of results) {
+            const node = cy.getElementById(r.id);
+            if (node && node.length > 0) {
+              matchingIds.add(r.id);
+            }
+          }
+
+          if (matchingIds.size === 0) {
+            isSearchActive = true;
+            cy.nodes().forEach(function(node) {
+              node.style('opacity', 0.2);
+            });
+            cy.edges().forEach(function(edge) {
+              edge.style('opacity', 0.1);
+            });
+            activeSearchIds.clear();
+            return;
+          }
+
+          isSearchActive = true;
+          activeSearchIds = matchingIds;
+
+          // Apply styles directly
+          cy.nodes().forEach(function(node) {
+            if (matchingIds.has(node.id())) {
+              node.style('opacity', 1);
+              node.style('border-width', 4);
+              node.style('border-color', '#ff6b35');
+            } else {
+              node.style('opacity', 0.2);
+              node.style('border-width', 2);
+              node.style('border-color', '#6b5e4f');
+            }
+          });
+
+          cy.edges().forEach(function(edge) {
+            const src = edge.source().id();
+            const tgt = edge.target().id();
+            if (matchingIds.has(src) || matchingIds.has(tgt)) {
+              edge.style('opacity', 0.6);
+            } else {
+              edge.style('opacity', 0.05);
+            }
+          });
+        }
+
+        function zoomToFirstMatch(results) {
+          for (const r of results) {
+            const node = cy.getElementById(r.id);
+            if (node && node.length > 0) {
+              cy.fit(node, 60);
+              // Flash the node
+              node.animate({ style: { 'border-width': 8, 'border-color': '#ff6b35' } }, { duration: 300 });
+              setTimeout(function() {
+                node.animate({ style: { 'border-width': 4, 'border-color': '#f4a261' } }, { duration: 300 });
+              }, 600);
+              return true;
+            }
+          }
+          return false;
+        }
 
         function clearDropdown() {
           searchDropdown.innerHTML = '';
@@ -990,6 +1213,7 @@
               navigateToResult(type, id);
               clearDropdown();
               searchInput.value = '';
+              clearGraphFilter();
             });
           });
         }
@@ -1014,13 +1238,23 @@
             openPanel(node.data());
           } else {
             console.warn('Sundo search: node not found in graph:', id);
-            // For articles, try to open detail panel via API anyway
+            // Open panel and fetch details via API
+            const panel = document.getElementById('detail-panel');
+            const title = document.getElementById('panel-title');
+            document.getElementById('panel-body').innerHTML = '<div class="loading-state">Loading...</div>';
+            panel.classList.add('panel-open');
             if (type === 'Article' || type === 'Other') {
+              title.textContent = 'Article';
               fetchOtherDetail(id);
             } else if (type === 'Author') {
+              title.textContent = 'Author';
               fetchAuthorDetail(id);
             } else if (type === 'Source') {
+              title.textContent = 'Source';
               fetchSourceDetail(id, '');
+            } else {
+              title.textContent = 'Node';
+              fetchOtherDetail(id);
             }
           }
         }
@@ -1040,12 +1274,15 @@
         function doSearch(query) {
           if (!query || query.length < 2) {
             clearDropdown();
+            clearGraphFilter();
             return;
           }
           fetch('/api/search?q=' + encodeURIComponent(query))
             .then(function(r) { return r.json(); })
             .then(function(data) {
-              renderResults(data.results || []);
+              const results = data.results || [];
+              renderResults(results);
+              applyGraphFilter(results);
             })
             .catch(function(err) {
               console.error('Sundo search error:', err);
@@ -1057,6 +1294,7 @@
           const query = e.target.value.trim();
           if (!query || query.length < 2) {
             clearDropdown();
+            clearGraphFilter();
             return;
           }
           searchTimeout = setTimeout(function() {
@@ -1066,7 +1304,22 @@
 
         searchInput.addEventListener('keydown', function(e) {
           const items = searchDropdown.querySelectorAll('.search-result');
-          if (!searchDropdown.classList.contains('active')) return;
+          if (!searchDropdown.classList.contains('active')) {
+            // If dropdown is not active but we have a query, handle Enter and Escape
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              doSearch(searchInput.value.trim());
+              if (isSearchActive && activeSearchIds.size > 0) {
+                zoomToFirstMatch(currentResults);
+              }
+            } else if (e.key === 'Escape') {
+              clearDropdown();
+              clearGraphFilter();
+              searchInput.value = '';
+              searchInput.blur();
+            }
+            return;
+          }
           if (e.key === 'ArrowDown') {
             e.preventDefault();
             selectedIndex = (selectedIndex + 1) % items.length;
@@ -1084,9 +1337,16 @@
               navigateToResult(type, id);
               clearDropdown();
               searchInput.value = '';
+              clearGraphFilter();
+            } else {
+              // No selection — zoom to first matching graph node
+              zoomToFirstMatch(currentResults);
             }
           } else if (e.key === 'Escape') {
             clearDropdown();
+            clearGraphFilter();
+            searchInput.value = '';
+            searchInput.blur();
           }
         });
 

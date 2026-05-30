@@ -372,6 +372,20 @@ class Neo4jClient:
             now = _dt.utcnow().isoformat()
         except Exception:
             now = None
+
+        # Compute verification status from the data provided
+        article_count = author_data.get('article_count', 1)
+        source_count = author_data.get('source_count', 1)
+        byline_variants = author_data.get('byline_variants', [])
+        if isinstance(byline_variants, str):
+            import json
+            try:
+                byline_variants = json.loads(byline_variants)
+            except Exception:
+                byline_variants = [byline_variants] if byline_variants else []
+        from sundo.ingest.author_extractor import compute_verification_status
+        status = compute_verification_status(article_count, source_count, byline_variants)
+
         self._run(
             """
             MERGE (a:Author {id: $id})
@@ -384,12 +398,13 @@ class Neo4jClient:
                 a.first_seen = $now,
                 a.last_seen = $now,
                 a.linked_voice_id = null,
-                a.verification_status = 'unknown'
+                a.verification_status = $verification_status
             ON MATCH SET
                 a.last_seen = $now,
-                a.article_count = a.article_count + 1
+                a.article_count = a.article_count + 1,
+                a.verification_status = $verification_status
             """,
-            {**author_data, "now": now},
+            {**author_data, "now": now, "verification_status": status},
         )
 
     def upsert_article(

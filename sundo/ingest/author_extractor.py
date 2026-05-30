@@ -130,7 +130,9 @@ def normalize_author(raw_name: str) -> Optional[dict]:
         'display_name': name,
         'handle': handle,
         'byline_variants': [name],
+        'verification_status': 'pending',
     }
+
 
 
 def make_author_id(display_name: str) -> str:
@@ -156,6 +158,27 @@ def make_handle(display_name: str) -> str:
 
 
 # ── Language detection ────────────────────────────────────────────────────────
+
+def compute_verification_status(article_count: int, source_count: int, byline_variants: list) -> str:
+    """
+    Compute an author's verification status based on track record.
+
+    Rules:
+      - >= 10 articles → "verified"
+      - >= 5 articles and consistent byline across 2+ sources → "verified"
+      - < 5 articles → "pending"
+      - Conflicting metadata (3+ byline variants, or >=5 articles with <2 sources) → "suspicious"
+    """
+    if article_count >= 10:
+        return "verified"
+    if len(byline_variants) >= 3:
+        return "suspicious"
+    if article_count >= 5:
+        if source_count >= 2:
+            return "verified"
+        return "suspicious"
+    return "pending"
+
 
 def detect_language(text: str) -> str:
     """

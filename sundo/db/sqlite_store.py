@@ -254,17 +254,18 @@ def upsert_author_sqlite(conn: sqlite3.Connection, author_data: dict) -> None:
     """
     Insert or update an author record in SQLite.
     On conflict (same id), appends new byline variant if not already present
-    and updates last_seen and article_count.
+    and updates last_seen, article_count, and verification_status.
     """
     import json
     from datetime import datetime
+    from sundo.ingest.author_extractor import compute_verification_status
 
     now = datetime.utcnow().isoformat()
     author_id = author_data['id']
 
     # Fetch existing to merge byline_variants
     existing = conn.execute(
-        "SELECT byline_variants FROM authors WHERE id = ?", (author_id,)
+        "SELECT byline_variants, article_count FROM authors WHERE id = ?", (author_id,)
     ).fetchone()
 
     if existing:
@@ -281,20 +282,42 @@ def upsert_author_sqlite(conn: sqlite3.Connection, author_data: dict) -> None:
             WHERE id = ?
         """, (json.dumps(variants), now, now, author_id))
     else:
+        variants = author_data.get('byline_variants', [author_data['display_name']])
         conn.execute("""
             INSERT INTO authors
             (id, display_name, handle, byline_variants,
              primary_language, article_count, first_seen, last_seen,
              verification_status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?, 'unknown', ?, ?)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, 'pending', ?, ?)
         """, (
             author_id,
             author_data['display_name'],
             author_data['handle'],
-            json.dumps(author_data['byline_variants']),
+            json.dumps(variants),
             author_data.get('primary_language', 'en'),
             now, now, now, now
         ))
+
+    # Recompute verification status based on current article count and source diversity
+    cursor = conn.execute("SELECT article_count FROM authors WHERE id = ?", (author_id,))
+    row = cursor.fetchone()
+    article_count = row[0] if row else 1
+
+    cursor = conn.execute("""
+        SELECT COUNT(DISTINCT feed_url) FROM rss_articles WHERE author_id = ?
+    """, (author_id,))
+    source_row = cursor.fetchone()
+    source_count = source_row[0] if source_row else 1
+
+    # Re-fetch variants in case they were updated
+    cursor = conn.execute("SELECT byline_variants FROM authors WHERE id = ?", (author_id,))
+    variant_row = cursor.fetchone()
+    variants = json.loads(variant_row[0] if variant_row else '[]')
+
+    status = compute_verification_status(article_count, source_count, variants)
+    conn.execute("""
+        UPDATE authors SET verification_status = ? WHERE id = ?
+    """, (status, author_id))
     conn.commit()
 
 

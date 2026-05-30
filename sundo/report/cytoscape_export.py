@@ -78,8 +78,8 @@ def _article_id(link: str) -> str:
 # ---------------------------------------------------------------------------
 # Feed → Source mapping (normalised URLs)
 # ---------------------------------------------------------------------------
-_FEED_SOURCE_MAP: dict[str, tuple[str, str, float]] = {}
-"""feed_url -> (source_id, source_name, credibility_score)"""
+_FEED_SOURCE_MAP: dict[str, tuple[str, str, str]] = {}
+"""feed_url -> (source_id, source_name, source_category)"""
 
 
 def _norm_url(url: str) -> str:
@@ -90,10 +90,10 @@ def _norm_url(url: str) -> str:
 
 for _name, _url in AMPLIFY_FEEDS:
     _short = _short_id(_name)
-    _FEED_SOURCE_MAP[_norm_url(_url)] = (_short, _name, 0.8)
+    _FEED_SOURCE_MAP[_norm_url(_url)] = (_short, _name, "amplify")
 for _name, _url in MONITOR_FEEDS:
     _short = _short_id(_name)
-    _FEED_SOURCE_MAP[_norm_url(_url)] = (_short, _name, 0.5)
+    _FEED_SOURCE_MAP[_norm_url(_url)] = (_short, _name, "monitor")
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ def _neo4j_nodes() -> list[dict[str, Any]]:
     cypher = (
         "MATCH (n) RETURN id(n) AS nid, labels(n)[0] AS type, "
         "n.id AS id, n.name AS name, n.handle AS handle, "
-        "n.credibility_score AS credibility_score, n.fara_linked AS fara_linked"
+        "n.source_category AS source_category, n.fara_linked AS fara_linked"
     )
     try:
         driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
@@ -175,11 +175,11 @@ def _sqlite_articles() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list
         # Resolve source info (normalised URL)
         norm = _norm_url(feed_url)
         if norm in _FEED_SOURCE_MAP:
-            src_id, src_name, cred = _FEED_SOURCE_MAP[norm]
+            src_id, src_name, src_cat = _FEED_SOURCE_MAP[norm]
         else:
             src_id = _short_id(feed_url)
             src_name = feed_url
-            cred = 0.8 if source_type == "amplify" else 0.5
+            src_cat = "amplify" if source_type == "amplify" else "monitor"
 
         if src_id not in seen_sources:
             seen_sources.add(src_id)
@@ -190,7 +190,7 @@ def _sqlite_articles() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list
                         "label": src_name,
                         "type": "Source",
                         "source_type": source_type,
-                        "credibility_score": cred,
+                        "source_category": src_cat,
                         "fara_linked": False,
                         "feed_url": feed_url,
                     }
@@ -346,7 +346,7 @@ def _export_author_nodes_sqlite() -> tuple[list, list]:
 
         # Author nodes from SQLite
         cursor.execute("""
-            SELECT id, display_name, handle, article_count, first_seen, last_seen
+            SELECT id, display_name, handle, article_count, first_seen, last_seen, verification_status
             FROM authors
             ORDER BY article_count DESC
         """)
@@ -363,7 +363,7 @@ def _export_author_nodes_sqlite() -> tuple[list, list]:
                     'article_count': article_count,
                     'primary_language': 'en',
                     'linked_voice_id': None,
-                    'verification_status': 'pending',
+                    'verification_status': row['verification_status'] or 'pending',
                     'size': min(10 + article_count * 2, 40),
                 }
             })
@@ -452,7 +452,7 @@ def export_graph() -> Path:
                     "id": logical_id,
                     "label": label,
                     "type": n.get("type", "Unknown"),
-                    "credibility_score": n.get("credibility_score"),
+                    "source_category": n.get("source_category"),
                     "fara_linked": bool(n.get("fara_linked", False)),
                 }
             }
